@@ -13,8 +13,28 @@ object SessionStore {
         val array = JSONArray(prefs(context).getString("sessions", "[]"))
         return (0 until array.length()).map { array.getJSONObject(it) }
     }
+    fun valid(record: JSONObject): Boolean {
+        if (record.opt("id") !is String || record.opt("updatedAt") !is Number) return false
+        if (!record.optString("id").matches(Regex("[A-Za-z0-9-]{1,120}")) || record.optLong("updatedAt", -1) < 0) return false
+        if (record.optBoolean("deleted")) return true
+        if (record.optString("kind") !in listOf("breathing", "shower", "bath")) return false
+        if (record.opt("durationMs") !is Number) return false
+        for (field in listOf("hrCount", "hrSum", "hrMin", "hrMax")) {
+            if (record.has(field) && record.opt(field) !is Number) return false
+        }
+        if (record.has("temperature") && !record.isNull("temperature") && record.opt("temperature") !is Number) return false
+        if (record.optLong("durationMs", -1) !in 0..86400000L) return false
+        try { Instant.parse(record.getString("startedAt")) } catch (_: Exception) { return false }
+        if (record.has("temperature") && !record.isNull("temperature") && record.optDouble("temperature", Double.NaN) !in -2.0..40.0) return false
+        if (record.has("retentions")) {
+            val holds = record.optJSONArray("retentions") ?: return false
+            if (holds.length() > 10 || (0 until holds.length()).any { holds.opt(it) !is Number || holds.optLong(it, -1) !in 0..86400000L }) return false
+        }
+        if (record.optInt("hrCount") > 0 && (!record.has("hrSum") || !record.has("hrMin") || !record.has("hrMax"))) return false
+        return true
+    }
     @Synchronized fun merge(context: Context, incoming: JSONObject): Boolean {
-        if (!incoming.has("id") || !incoming.has("updatedAt")) return false
+        if (!valid(incoming)) return false
         val records = all(context).toMutableList()
         val index = records.indexOfFirst { it.optString("id") == incoming.optString("id") }
         if (index >= 0) {
@@ -32,6 +52,7 @@ object SessionStore {
         record.put("id", record.optString("id").ifBlank { UUID.randomUUID().toString() })
         record.put("updatedAt", System.currentTimeMillis())
         record.put("source", if (context.packageManager.hasSystemFeature("android.hardware.type.watch")) "wear" else "phone")
+        require(valid(record)) { "Invalid session" }
         merge(context, record)
         SessionSync.publish(context, record)
         return record

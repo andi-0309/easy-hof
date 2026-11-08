@@ -330,6 +330,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     )) {
       return;
     }
+    await Device.call<bool>('requestNotifications');
     bool hr = false;
     if (isWear) hr = await Device.call<bool>('requestHeartRate') ?? false;
     await Device.call('startCold', {
@@ -784,26 +785,27 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(26, 24, 26, 40),
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Flexible(
-                  child: Text('Easy Hof', style: TextStyle(fontSize: 12)),
-                ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: t('Verlauf', 'History'),
-                  onPressed: () => setState(() => tab = 2),
-                  icon: const Icon(Icons.history, size: 20),
-                ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: t('Einstellungen', 'Settings'),
-                  onPressed: () => setState(() => tab = 3),
-                  icon: const Icon(Icons.settings, size: 20),
-                ),
-              ],
-            ),
+            if (a == null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Flexible(
+                    child: Text('Easy Hof', style: TextStyle(fontSize: 12)),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: t('Verlauf', 'History'),
+                    onPressed: () => setState(() => tab = 2),
+                    icon: const Icon(Icons.history, size: 20),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: t('Einstellungen', 'Settings'),
+                    onPressed: () => setState(() => tab = 3),
+                    icon: const Icon(Icons.settings, size: 20),
+                  ),
+                ],
+              ),
             if (error != null)
               Text(
                 error!,
@@ -1114,6 +1116,39 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         label: Text(t('Synchronisieren', 'Sync now')),
       ),
     ]),
+    if (!isWear)
+      panel([
+        Text(
+          t('Lokales Backup', 'Local backup'),
+          style: const TextStyle(fontSize: 20),
+        ),
+        space(),
+        Text(
+          t(
+            'Verlauf als JSON-Datei sichern oder wiederherstellen. Gleiche Einheiten werden nicht doppelt importiert.',
+            'Save or restore history as a JSON file. Existing sessions are not duplicated.',
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: busy
+              ? null
+              : () => action(() async {
+                  await Device.call('exportBackup');
+                }),
+          icon: const Icon(Icons.file_download_outlined),
+          label: Text(t('Exportieren', 'Export')),
+        ),
+        OutlinedButton.icon(
+          onPressed: busy
+              ? null
+              : () => action(() async {
+                  await Device.call('importBackup');
+                  await refresh();
+                }),
+          icon: const Icon(Icons.file_upload_outlined),
+          label: Text(t('Importieren', 'Import')),
+        ),
+      ]),
     panel([
       Text(
         t('Privat. Übersichtlich. Easy Hof.', 'Private. Simple. Easy Hof.'),

@@ -48,4 +48,24 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('leaving the app pauses an active breathing session', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const EasyHof());
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -350));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start breathing'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Understood'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Settle in'), findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 10));
+    expect(find.text('Paused'), findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(find.text('Paused'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
 }

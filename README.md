@@ -9,6 +9,7 @@ Eine einfache Flutter-App für angeleitete Atemübungen und Kältetraining. Andr
 - **Wear OS:** Eigenständiger Kälte-Timer mit optionalem Puls. Erfasst Mittelwert/Minimum/Maximum gültiger Sensorwerte. Fehlende/alte/unzuverlässige Messwerte werden explizit gekennzeichnet. Aufzeichnung läuft bei ausgeschaltetem Display weiter.
 - **Verlauf:** Atemhaltezeiten pro Runde, Dauer, Temperatur, Pulsstatistik, Herkunftsgerät und vorzeitiger Abbruch. Einzelne Einheiten löschen.
 - **Sync:** Wear OS Data Layer zwischen gekoppelten Geräten, auch nach Offline-Aufzeichnung. Gleiche Paket-ID und Signatur für beide APKs. Eindeutige IDs verhindern Duplikate; Löschmarkierungen verhindern Wiederherstellung gelöschter Daten durch alte Offline-Kopien.
+- **Backup:** Auf dem Smartphone Verlauf als JSON über den Android-Dateidialog exportieren/importieren. IDs bleiben erhalten; doppelte Einheiten werden zusammengeführt. Die Datei enthält Trainingsdaten und sollte an einem selbst gewählten sicheren Ort liegen.
 - **Datenschutz:** Lokale Speicherung, Android-Cloud-Backup deaktiviert, keine Internetberechtigung in Release-APKs, keine Analyse-Dienste. Geräte-Sync nutzt die vom Betriebssystem bereitgestellte Google-Play-Services/Wear-OS-Verbindung; kein Easy-Hof-Backend. Ohne Play Services bleiben die lokalen Funktionen nutzbar, Geräte-Sync ist dann nicht verfügbar.
 
 ## Installation
@@ -43,7 +44,7 @@ CI führt Formatprüfung, Analyse, Tests und beide APK-Builds bei Push, Pull Req
 
 ### Signierung
 
-CI baut beide APKs im **gleichen Job** mit demselben automatisch erzeugten Android-Testschlüssel. So funktioniert die Geräte-Synchronisierung innerhalb eines Build-Paars. Der private Testschlüssel wird nicht veröffentlicht. Bei einem neuen CI-Lauf ändert sich dieser Schlüssel: Vor Installation eines neuen Entwicklungspaars müssen alte Installationen entfernt werden; lokale Daten gehen dabei verloren.
+CI baut beide APKs im **gleichen Job** mit demselben automatisch erzeugten Android-Testschlüssel. So funktioniert die Geräte-Synchronisierung innerhalb eines Build-Paars. Der private Testschlüssel wird nicht veröffentlicht. Bei einem neuen CI-Lauf ändert sich dieser Schlüssel: Vor Installation eines neuen Entwicklungspaars müssen alte Installationen entfernt werden; lokale Daten gehen dabei verloren, sofern sie nicht vorher exportiert wurden.
 
 Für dauerhafte Nutzung externen privaten Keystore über `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` bereitstellen und für beide Geräte verwenden. Die CI unterstützt optional die Repository-Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Mit diesen werden beide APKs stabil signiert. Schlüssel niemals ins Repository einchecken. Ein einmaliger Wechsel von Test- auf private Signatur erfordert Neuinstallation.
 

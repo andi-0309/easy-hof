@@ -45,3 +45,12 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16.1")
 }
 android.testOptions.unitTests.isIncludeAndroidResources = true
+
+// AGP 9 host-test packaging consumes Flutter assets. Flutter's plugin does
+// not currently register this dependency for the host-test packaging task.
+tasks.configureEach {
+    if (name.startsWith("package") && name.endsWith("UnitTestForUnitTest")) {
+        val variant = name.removePrefix("package").removeSuffix("UnitTestForUnitTest")
+        dependsOn("copyFlutterAssets$variant")
+    }
+}
