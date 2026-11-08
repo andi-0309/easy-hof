@@ -26,8 +26,9 @@ jobs:
           cache: true
       - run: flutter --suppress-analytics pub get --enforce-lockfile
       - run: dart format --output=none --set-exit-if-changed lib test
+      - run: python3 tools/check_voice_assets.py
       - run: flutter --suppress-analytics analyze
-      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart
+      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart
       - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart
   build:
     needs: check

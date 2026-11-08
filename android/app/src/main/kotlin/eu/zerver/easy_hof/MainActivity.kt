@@ -4,21 +4,27 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.speech.tts.TextToSpeech
+import android.media.MediaPlayer
+import android.media.AudioManager
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import io.flutter.FlutterInjector
+import java.io.File
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 
-class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
-    private var speech: TextToSpeech? = null
-    private var speechReady = false
+class MainActivity : FlutterActivity() {
+    private var player: MediaPlayer? = null
+    private var focus: AudioFocusRequest? = null
+    private val cachedClips = mutableMapOf<String, File>()
     private var documentResult: MethodChannel.Result? = null
     private var permissionResult: MethodChannel.Result? = null
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        speech = TextToSpeech(this, this)
+        volumeControlStream = AudioManager.STREAM_MUSIC
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "eu.zerver.easyhof/device").setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
@@ -32,13 +38,11 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
                         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         result.success(null)
                     }
-                    "voiceAvailable" -> result.success(selectVoice(call.argument<String>("language") ?: "en"))
-                    "speak" -> {
-                        if (selectVoice(call.argument<String>("language") ?: "en")) speech?.speak(call.argument<String>("text"), TextToSpeech.QUEUE_FLUSH, null, "cue")
+                    "playCue" -> {
+                        playCue(call.argument<String>("cue") ?: "", call.argument<String>("language") ?: "en")
                         result.success(null)
                     }
-                    "stopSpeech" -> { speech?.stop(); result.success(null) }
-                    "ttsSettings" -> { startActivity(Intent("com.android.settings.TTS_SETTINGS")); result.success(null) }
+                    "stopSpeech" -> { stopAudio(); result.success(null) }
                     "exportBackup", "importBackup" -> {
                         if (documentResult != null) { result.error("busy", "Document picker already active", null); return@setMethodCallHandler }
                         documentResult = result
@@ -77,13 +81,44 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
         }
         SessionSync.sync(this)
     }
-    private fun selectVoice(language: String): Boolean {
-        if (!speechReady) return false
-        val voice = speech?.voices?.filter { it.locale.language == language && !it.isNetworkConnectionRequired && !it.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
-            ?.sortedByDescending { it.quality }?.firstOrNull() ?: return false
-        return speech?.setVoice(voice) == TextToSpeech.SUCCESS
+    private fun playCue(cue: String, language: String) {
+        require(language in setOf("de", "en")) { "Unknown audio language" }
+        require(cue in setOf("welcome", "countdown", "inhale", "exhale", "retention", "recovery", "rest", "done")) { "Unknown audio cue" }
+        stopAudio()
+        val key = "$language/$cue"
+        val file = cachedClips.getOrPut(key) {
+            val path = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset("assets/audio/$key.mp3")
+            File(cacheDir, "easy-hof-$language-$cue.mp3").also { destination ->
+                assets.open(path).use { input -> destination.outputStream().use { output -> input.copyTo(output) } }
+            }
+        }
+        val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+        val manager = getSystemService(AUDIO_SERVICE) as AudioManager
+        focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(attributes).setOnAudioFocusChangeListener { change -> if (change < 0) stopAudio() }.build()
+        if (manager.requestAudioFocus(focus!!) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            stopAudio(); error("Audio focus unavailable")
+        }
+        val next = MediaPlayer()
+        player = next
+        try {
+            next.apply {
+                setAudioAttributes(attributes)
+                setDataSource(file.absolutePath)
+                setOnCompletionListener { completed -> if (player === completed) stopAudio() }
+                setOnErrorListener { _, _, _ -> stopAudio(); true }
+                prepare()
+                start()
+            }
+        } catch (error: Exception) { stopAudio(); throw error }
     }
-    override fun onInit(status: Int) { speechReady = status == TextToSpeech.SUCCESS; speech?.setSpeechRate(1.0f) }
+    private fun stopAudio() {
+        player?.release(); player = null
+        focus?.let { (getSystemService(AUDIO_SERVICE) as AudioManager).abandonAudioFocusRequest(it) }
+        focus = null
+    }
+    override fun onStop() { stopAudio(); super.onStop() }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 71) { permissionResult?.success(grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED); permissionResult = null }
@@ -126,7 +161,7 @@ class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
         } catch (e: Exception) { result.error("backup", e.message, null) }
     }
     override fun onDestroy() {
-        speech?.stop(); speech?.shutdown()
+        stopAudio()
         permissionResult?.success(false); permissionResult = null
         documentResult?.success(false); documentResult = null
         super.onDestroy()

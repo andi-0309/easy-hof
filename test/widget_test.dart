@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_hof/main.dart';
 import 'package:easy_hof/platform.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  final calls = <MethodCall>[];
   setUp(() {
+    calls.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(Device.channel, (call) async {
+          calls.add(call);
           if (call.method == 'settings') return jsonEncode({'language': 'en'});
           if (call.method == 'snapshot') {
             return jsonEncode({'sessions': [], 'syncStatus': 'ready'});
           }
-          if (call.method == 'voiceAvailable') return true;
           return null;
         });
   });
@@ -60,12 +63,18 @@ void main() {
     await tester.tap(find.text('Understood'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Settle in'), findsOneWidget);
+    expect(calls.where((c) => c.method == 'playCue').last.arguments, {
+      'cue': 'countdown',
+      'language': 'en',
+    });
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump(const Duration(seconds: 10));
     expect(find.text('Paused'), findsOneWidget);
+    expect(calls.any((c) => c.method == 'stopSpeech'), isTrue);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
     expect(find.text('Paused'), findsOneWidget);
+    expect(calls.any((c) => c.method == 'stopSpeech'), isTrue);
     await tester.pumpWidget(const SizedBox());
   });
 }

@@ -1,0 +1,176 @@
+{
+  "generator": "piper-tts 1.8.0",
+  "format": "MP3 mono 22050 Hz, 96 kbit/s",
+  "voices": {
+    "de": {
+      "model": "de_DE-thorsten-medium",
+      "sha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819"
+    },
+    "en": {
+      "model": "en_US-ljspeech-high",
+      "sha256": "5d4f08ba6a2a48c44592eed3ce56bf85e9de3dd4e20df90541ae68a8310c029a"
+    }
+  },
+  "clips": [
+    {
+      "language": "de",
+      "cue": "welcome",
+      "text": "Willkommen bei Easy Hof. Dein Moment zum Durchatmen.",
+      "durationSeconds": 2.978,
+      "loudnessLufs": -18.45,
+      "truePeakDb": -4.71,
+      "bytes": 36094,
+      "sha256": "adc231ed5d84292d5509193ed351e46d02c00544736abc404ee10475d9c3ba1b"
+    },
+    {
+      "language": "de",
+      "cue": "countdown",
+      "text": "Mach es dir bequem.",
+      "durationSeconds": 1.045,
+      "loudnessLufs": -18.49,
+      "truePeakDb": -1.96,
+      "bytes": 12897,
+      "sha256": "4e69f15f772d0791a1c610d2301dacd51fd22e5e93b080adb4b397ff179e5660"
+    },
+    {
+      "language": "de",
+      "cue": "inhale",
+      "text": "Einatmen.",
+      "durationSeconds": 0.731,
+      "loudnessLufs": -18.43,
+      "truePeakDb": -3.86,
+      "bytes": 9135,
+      "sha256": "7b7c3e50a17684131155486c5ab89381f4dab8ce42c82f4a0fd0affd3274e5e9"
+    },
+    {
+      "language": "de",
+      "cue": "exhale",
+      "text": "Loslassen.",
+      "durationSeconds": 0.731,
+      "loudnessLufs": -18.46,
+      "truePeakDb": -4.37,
+      "bytes": 9135,
+      "sha256": "9a818884433e0f8b27d8107d87182ee8a9f39163fa9dceb72569604909743002"
+    },
+    {
+      "language": "de",
+      "cue": "retention",
+      "text": "Halte nach dem Ausatmen. Atme wieder, sobald du Luft brauchst.",
+      "durationSeconds": 3.5,
+      "loudnessLufs": -18.44,
+      "truePeakDb": -2.39,
+      "bytes": 42363,
+      "sha256": "6c59ca763cbd85fb05459fe02be6dc0f1c40bd3aa6878252d52543d1afcc4a9a"
+    },
+    {
+      "language": "de",
+      "cue": "recovery",
+      "text": "Tief einatmen und kurz halten.",
+      "durationSeconds": 1.855,
+      "loudnessLufs": -18.46,
+      "truePeakDb": -2.84,
+      "bytes": 22614,
+      "sha256": "45cb48a4c5d20cb15d1e8fd5c4d69615c6c9b6eb73cd128fc9f09b95334c1902"
+    },
+    {
+      "language": "de",
+      "cue": "rest",
+      "text": "Loslassen. Atme ganz normal weiter.",
+      "durationSeconds": 2.325,
+      "loudnessLufs": -19.03,
+      "truePeakDb": -1.91,
+      "bytes": 28257,
+      "sha256": "21662ff3ea2997634ba0f8000ff03f92051baabf47bfdaced53535585b491bb4"
+    },
+    {
+      "language": "de",
+      "cue": "done",
+      "text": "Geschafft. Atme entspannt weiter.",
+      "durationSeconds": 1.881,
+      "loudnessLufs": -19.83,
+      "truePeakDb": -1.96,
+      "bytes": 22928,
+      "sha256": "ae7429888d3d4cf06c6dfc2239df79291e49f08beaf6181ad7ba7a03717d1835"
+    },
+    {
+      "language": "en",
+      "cue": "welcome",
+      "text": "Welcome to Easy Hof. A moment to breathe.",
+      "durationSeconds": 2.873,
+      "loudnessLufs": -19.51,
+      "truePeakDb": -1.96,
+      "bytes": 34840,
+      "sha256": "6dd6ce43842641349731a04c90e38f691bcdb105e7e26a3fb1d3a6b9142eef56"
+    },
+    {
+      "language": "en",
+      "cue": "countdown",
+      "text": "Get comfortable.",
+      "durationSeconds": 0.993,
+      "loudnessLufs": -20.13,
+      "truePeakDb": -1.78,
+      "bytes": 12270,
+      "sha256": "6b0ca7311cb8a9fb42d81771bb0ed8332692a482066b4a1cf85e1ddd3a9ba9c9"
+    },
+    {
+      "language": "en",
+      "cue": "inhale",
+      "text": "Breathe in.",
+      "durationSeconds": 0.784,
+      "loudnessLufs": -18.46,
+      "truePeakDb": -3.61,
+      "bytes": 9762,
+      "sha256": "531a15bf2e92f890a648823a4d45c7a451e29fdccf364177d9ff6a0e5a6f79b2"
+    },
+    {
+      "language": "en",
+      "cue": "exhale",
+      "text": "Let go.",
+      "durationSeconds": 0.758,
+      "loudnessLufs": -18.44,
+      "truePeakDb": -6.03,
+      "bytes": 9449,
+      "sha256": "5906317cdda34dd0a6d8c79c446bcbadb86d298fade9358626ecd2ab7ea46e51"
+    },
+    {
+      "language": "en",
+      "cue": "retention",
+      "text": "Hold gently after exhaling. Breathe again when you need air.",
+      "durationSeconds": 4.206,
+      "loudnessLufs": -18.47,
+      "truePeakDb": -2.09,
+      "bytes": 50827,
+      "sha256": "6208ef19817395ef0ea7428ed5b53f2812a2efba55a8030e103b148017ad8d27"
+    },
+    {
+      "language": "en",
+      "cue": "recovery",
+      "text": "Breathe in deeply, and hold briefly.",
+      "durationSeconds": 2.534,
+      "loudnessLufs": -18.45,
+      "truePeakDb": -1.96,
+      "bytes": 30765,
+      "sha256": "0ded8e953cad16d7649c59c9ca38062e0d3545f77a749eddd15919c01a709abc"
+    },
+    {
+      "language": "en",
+      "cue": "rest",
+      "text": "Let go. Breathe normally.",
+      "durationSeconds": 1.698,
+      "loudnessLufs": -18.43,
+      "truePeakDb": -3.85,
+      "bytes": 20734,
+      "sha256": "1f8014b5acfd4a3f53f65acd506d4cdf3311c18a44d21a57c6addecf2f41d04e"
+    },
+    {
+      "language": "en",
+      "cue": "done",
+      "text": "Well done. Keep breathing naturally.",
+      "durationSeconds": 2.194,
+      "loudnessLufs": -18.47,
+      "truePeakDb": -2.86,
+      "bytes": 26689,
+      "sha256": "3e3317da0919a4ff8b8bf06f878c8d052d78dd680a0fe6992c308dc13f85a297"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Eine einfache Flutter-App für angeleitete Atemübungen und Kältetraining. Andr
 
 ## Funktionen
 
-- **Atmen:** 1–10 Runden, 10–60 Atemzüge, 4/6/8 Sekunden pro Atemzug. Animation und deutsche/englische Android-Offline-Stimme. Freies Atemhalten bis zum manuellen Fortsetzen, 15 Sekunden Erholungsatem mit jederzeit möglichem Ausatmen, dann 5 Sekunden normales Atmen. Pause und vorzeitiges Beenden.
+- **Atmen:** 1–10 Runden, 10–60 Atemzüge, 4/6/8 Sekunden pro Atemzug. Animation und fest eingebundene deutsche/englische Sprachdateien. Freies Atemhalten bis zum manuellen Fortsetzen, 15 Sekunden Erholungsatem mit jederzeit möglichem Ausatmen, dann 5 Sekunden normales Atmen. Pause und vorzeitiges Beenden.
 - **Kälte:** Dusche oder Eisbad, Stoppuhr, optionale Zielzeit mit Vibration, manuell eingegebene Temperatur in 0,5-°C-Schritten. Keine Notizen.
 - **Wear OS:** Eigenständiger Kälte-Timer mit optionalem Puls. Erfasst Mittelwert/Minimum/Maximum gültiger Sensorwerte. Fehlende/alte/unzuverlässige Messwerte werden explizit gekennzeichnet. Aufzeichnung läuft bei ausgeschaltetem Display weiter.
 - **Verlauf:** Atemhaltezeiten pro Runde, Dauer, Temperatur, Pulsstatistik, Herkunftsgerät und vorzeitiger Abbruch. Einzelne Einheiten löschen.
@@ -23,7 +23,7 @@ adb -s WATCH_SERIAL install -r app-wear-release.apk
 
 Android 9 / API 28 oder neuer. Für die Watch wird eine Wear-OS-Uhr mit Android API 28+ benötigt; Herzfrequenz setzt einen kompatiblen Sensor voraus. Auf beiden Geräten muss dieselbe Build-/Signaturfamilie installiert sein. Die Uhr vorher regulär mit dem Smartphone koppeln. Unter **Einstellungen → Synchronisieren** kann der automatische Sync zusätzlich manuell angestoßen werden. „Übertragung vorgemerkt“ bedeutet im System hinterlegt, nicht bestätigter Empfang auf dem anderen Gerät.
 
-Für Sprache eine **Offline-Stimme** für Deutsch bzw. Englisch in den Android-Sprachausgabe-Einstellungen installieren. Die App wählt ausschließlich Stimmen ohne Netzwerkbedarf. Fehlt die Stimme, wird vor dem Start auf den Betrieb ohne Sprache hingewiesen.
+Die deutschen und englischen **Sprachdateien sind in beiden APKs enthalten**. Kein TTS-Dienst, keine installierte Systemstimme und kein Nachladen nötig. Unter Einstellungen lässt sich die Stimme testen. Kurze Atemsignale passen auch in das schnellste Tempo. Sprache wird bei Pause oder Verlassen der App gestoppt. Details, Texte und Herkunft stehen in [assets/audio/README.md](assets/audio/README.md).
 
 ## Entwicklung
 
@@ -65,4 +65,4 @@ Grundlage: [Offizielle Atemtechnik](https://www.wimhofmethod.com/breathing-exerc
 
 ## Noch am Gerät prüfen
 
-Vor einer stabilen Veröffentlichung: echte Pixel Watch (Sensorzugriff, Berechtigung verweigert, Display aus), Bluetooth-Trennung und späterer Sync, identische Signatur, Offline-Stimmen, Prozessende/Neustart und Batterieverbrauch. Emulator- und Unit-Tests ersetzen diese Hardwaretests nicht.
+Vor einer stabilen Veröffentlichung: echte Pixel Watch (Sensorzugriff, Berechtigung verweigert, Display aus), Bluetooth-Trennung und späterer Sync, identische Signatur, eingebundene Audiodateien, Prozessende/Neustart und Batterieverbrauch. Emulator- und Unit-Tests ersetzen diese Hardwaretests nicht.

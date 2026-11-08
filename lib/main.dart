@@ -208,24 +208,6 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     )) {
       return;
     }
-    if (voice) {
-      final available =
-          await Device.call<bool>('voiceAvailable', {'language': language}) ??
-          false;
-      if (!available) {
-        if (!mounted) return;
-        if (!await confirm(
-          t('Offline-Stimme fehlt', 'Offline voice unavailable'),
-          t(
-            'Installiere eine deutsche Offline-Stimme in den Android-Sprachausgabe-Einstellungen. Du kannst jetzt ohne Sprache starten.',
-            'Install an English offline voice in Android text-to-speech settings. You can start without speech now.',
-          ),
-          accept: t('Ohne Sprache starten', 'Start without speech'),
-        )) {
-          return;
-        }
-      }
-    }
     final b = BreathingSession(
       rounds: rounds,
       breaths: breaths,
@@ -246,29 +228,19 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     final key = '${b.phase}-${b.round}-${b.breath}';
     if (lastCue == key) return;
     lastCue = key;
-    String text = switch (b.phase) {
-      BreathPhase.countdown => t('Mach es dir bequem.', 'Get comfortable.'),
-      BreathPhase.inhale => t('Einatmen', 'Breathe in'),
-      BreathPhase.exhale => t('Loslassen', 'Let go'),
-      BreathPhase.retention => t(
-        'Nach dem Ausatmen halten. Atme wieder, sobald du Luft brauchst.',
-        'Hold after exhaling. Breathe again when you need air.',
-      ),
-      BreathPhase.recovery => t(
-        'Tief einatmen und kurz halten.',
-        'Breathe in deeply and hold briefly.',
-      ),
-      BreathPhase.rest => t(
-        'Loslassen. Normal atmen.',
-        'Let go. Breathe normally.',
-      ),
-      BreathPhase.done => t(
-        'Fertig. Atme entspannt weiter.',
-        'Finished. Keep breathing naturally.',
-      ),
-      _ => '',
-    };
-    if (voice && text.isNotEmpty) Device.speak(text, language);
+    if (voice && b.phase != BreathPhase.ready) {
+      Device.playCue(b.phase.name, language).catchError((Object _) {
+        if (mounted) {
+          setState(() {
+            voice = false;
+            error = t(
+              'Audio konnte nicht abgespielt werden. Die Übung läuft ohne Sprache weiter.',
+              'Audio could not be played. The session continues without speech.',
+            );
+          });
+        }
+      });
+    }
     if (b.phase == BreathPhase.retention || b.phase == BreathPhase.done) {
       HapticFeedback.mediumImpact();
     }
@@ -298,8 +270,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   Future<void> saveBreathing() async {
     try {
       await Device.save(pendingBreathing!);
-      pendingBreathing = null;
       await refresh();
+      pendingBreathing = null;
       if (mounted) {
         setState(() {
           breathing = null;
@@ -598,7 +570,9 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(t('Sprachführung', 'Voice guidance')),
-        subtitle: Text(t('Deutsche Offline-Stimme', 'English offline voice')),
+        subtitle: Text(
+          t('Integrierte deutsche Stimme', 'Bundled English voice'),
+        ),
         value: voice,
         onChanged: (v) {
           setState(() => voice = v);
@@ -1060,31 +1034,16 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       ),
       TextButton.icon(
         onPressed: () => action(() async {
-          if (await Device.call<bool>('voiceAvailable', {
-                'language': language,
-              }) !=
-              true) {
-            showError(
-              t(
-                'Deutsche Offline-Stimme fehlt. Bitte in Android installieren.',
-                'English offline voice missing. Please install it in Android.',
-              ),
-            );
-          } else {
-            await Device.speak(
-              t('Willkommen bei Easy Hof.', 'Welcome to Easy Hof.'),
-              language,
-            );
-          }
+          await Device.playCue('welcome', language);
         }),
         icon: const Icon(Icons.volume_up_outlined),
         label: Text(t('Stimme testen', 'Test voice')),
       ),
-      TextButton(
-        onPressed: () => action(() async {
-          await Device.call('ttsSettings');
-        }),
-        child: Text(t('Android-Sprachausgabe', 'Android speech settings')),
+      Text(
+        t(
+          'Die Ansagen sind fest in der App enthalten. Keine Systemstimme und kein Download nötig.',
+          'Voice clips are included in the app. No system voice or download needed.',
+        ),
       ),
     ]),
     panel([

@@ -13,7 +13,7 @@ class Device {
     await call('saveSession', {'json': jsonEncode(session)});
   }
 
-  static Future<void> speak(String text, String language) async {
-    await call('speak', {'text': text, 'language': language});
+  static Future<void> playCue(String cue, String language) async {
+    await call('playCue', {'cue': cue, 'language': language});
   }
 }

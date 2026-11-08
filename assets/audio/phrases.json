@@ -1,0 +1,22 @@
+{
+  "de": {
+    "welcome": "Willkommen bei Easy Hof. Dein Moment zum Durchatmen.",
+    "countdown": "Mach es dir bequem.",
+    "inhale": "Einatmen.",
+    "exhale": "Loslassen.",
+    "retention": "Halte nach dem Ausatmen. Atme wieder, sobald du Luft brauchst.",
+    "recovery": "Tief einatmen und kurz halten.",
+    "rest": "Loslassen. Atme ganz normal weiter.",
+    "done": "Geschafft. Atme entspannt weiter."
+  },
+  "en": {
+    "welcome": "Welcome to Easy Hof. A moment to breathe.",
+    "countdown": "Get comfortable.",
+    "inhale": "Breathe in.",
+    "exhale": "Let go.",
+    "retention": "Hold gently after exhaling. Breathe again when you need air.",
+    "recovery": "Breathe in deeply, and hold briefly.",
+    "rest": "Let go. Breathe normally.",
+    "done": "Well done. Keep breathing naturally."
+  }
+}
