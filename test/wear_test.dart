@@ -21,7 +21,7 @@ void main() {
         });
     await tester.pumpWidget(const EasyHof());
     await tester.pumpAndSettle();
-    expect(find.text('Kälte'), findsOneWidget);
+    expect(find.text('Starten'), findsOneWidget);
     for (var i = 0; i < 5; i++) {
       await tester.drag(find.byType(ListView), const Offset(0, -100));
       await tester.pumpAndSettle();

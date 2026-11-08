@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'breathing.dart';
@@ -280,6 +281,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     await Device.call('keepScreen', {'enabled': false});
     if (interrupted) await Device.call('stopSpeech');
     pendingBreathing = {
+      'id':
+          'breath-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}',
       'kind': 'breathing',
       'startedAt': started['breathing'],
       'durationMs': b.totalMs,
@@ -373,6 +376,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (breathing != null) return breathingView(context);
+    if (isWear && tab == 1) return watchColdView(context);
     final title = [
       t('Atmen', 'Breathe'),
       t('Kälte', 'Cold'),
@@ -771,6 +775,151 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               ),
       ),
     ];
+  }
+
+  Widget watchColdView(BuildContext context) {
+    final a = cold;
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(26, 24, 26, 40),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Flexible(
+                  child: Text('Easy Hof', style: TextStyle(fontSize: 12)),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: t('Verlauf', 'History'),
+                  onPressed: () => setState(() => tab = 2),
+                  icon: const Icon(Icons.history, size: 20),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: t('Einstellungen', 'Settings'),
+                  onPressed: () => setState(() => tab = 3),
+                  icon: const Icon(Icons.settings, size: 20),
+                ),
+              ],
+            ),
+            if (error != null)
+              Text(
+                error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            if (a == null) ...[
+              DropdownButton<String>(
+                isExpanded: true,
+                value: coldType,
+                items: [
+                  DropdownMenuItem(
+                    value: 'shower',
+                    child: Text(t('Dusche', 'Shower')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'bath',
+                    child: Text(t('Eisbad', 'Ice bath')),
+                  ),
+                ],
+                onChanged: (v) => setState(() => coldType = v!),
+              ),
+              FilledButton(
+                onPressed: busy ? null : () => action(startCold),
+                child: Text(t('Starten', 'Start')),
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  t('Temperatur', 'Temperature'),
+                  style: const TextStyle(fontSize: 13),
+                ),
+                value: temperatureKnown,
+                onChanged: (v) => setState(() => temperatureKnown = v),
+              ),
+              if (temperatureKnown)
+                numberControl(
+                  '°C',
+                  (temperature * 2).round(),
+                  -4,
+                  80,
+                  (v) => setState(() => temperature = v / 2),
+                  display: '${temperature.toStringAsFixed(1)} °C',
+                ),
+              numberControl(
+                t('Zielzeit', 'Target time'),
+                goal,
+                0,
+                1800,
+                (v) => setState(() => goal = v),
+                step: 30,
+                display: goal == 0
+                    ? t('Ohne', 'None')
+                    : durationLabel(goal * 1000),
+              ),
+              Text(
+                t(
+                  'Temperatur manuell. Puls mit Sensorberechtigung. Sync bei Verbindung.',
+                  'Manual temperature. Heart rate with sensor permission. Sync when connected.',
+                ),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ] else ...[
+              Text(
+                a['kind'] == 'bath'
+                    ? t('Eisbad', 'Ice bath')
+                    : t('Dusche', 'Shower'),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                durationLabel((a['durationMs'] as num? ?? 0).toInt()),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 36,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              FilledButton(
+                onPressed: busy
+                    ? null
+                    : () => action(() async {
+                        await Device.call('stopCold');
+                        await refresh();
+                        setState(() => tab = 2);
+                      }),
+                child: Text(t('Beenden', 'Finish')),
+              ),
+              space(),
+              Text(
+                a['bpm'] == null
+                    ? t('♥ Kein Messwert', '♥ No reading')
+                    : '♥ ${(a['bpm'] as num).round()} bpm',
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                hrStatus(a['hrStatus']?.toString() ?? 'waiting'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+              ),
+              if (a['temperature'] != null)
+                Text('${a['temperature']} °C', textAlign: TextAlign.center),
+              if ((a['goalSeconds'] as num? ?? 0) > 0)
+                Text(
+                  '${t('Ziel', 'Target')}: ${durationLabel((a['goalSeconds'] as num).toInt() * 1000)}${a['goalReached'] == true ? ' ✓' : ''}',
+                  textAlign: TextAlign.center,
+                ),
+              space(),
+              Text(
+                t('Normal weiteratmen.', 'Breathe normally.'),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   String hrStatus(String status) => switch (status) {
