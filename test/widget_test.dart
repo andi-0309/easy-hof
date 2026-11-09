@@ -33,6 +33,8 @@ void main() {
     expect(find.text('0 sessions'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.tune_rounded));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('DE'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('DE'));
     await tester.pumpAndSettle();
     expect(find.text('Sprache & Stimme'), findsOneWidget);
