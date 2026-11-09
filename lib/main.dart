@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'breathing.dart';
 import 'platform.dart';
+import 'nordic.dart';
+import 'watch_install.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
@@ -22,6 +26,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       ? 'de'
       : 'en';
   bool voice = true;
+  bool haptics = true;
   int rounds = 3, breaths = 30, pace = 6, tab = isWear ? 1 : 0;
   int goal = 0;
   String coldType = 'shower';
@@ -62,6 +67,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         final s = jsonDecode(raw) as Map;
         language = s['language'] == 'en' ? 'en' : 'de';
         voice = s['voice'] != false;
+        haptics = s['haptics'] != false;
         rounds = (s['rounds'] as num? ?? 3).toInt().clamp(1, 10);
         breaths = (s['breaths'] as num? ?? 30).toInt().clamp(10, 60);
         pace = (s['pace'] as num? ?? 6).toInt().clamp(4, 8);
@@ -79,6 +85,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         'json': jsonEncode({
           'language': language,
           'voice': voice,
+          'haptics': haptics,
           'rounds': rounds,
           'breaths': breaths,
           'pace': pace,
@@ -229,7 +236,14 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     if (lastCue == key) return;
     lastCue = key;
     if (voice && b.phase != BreathPhase.ready) {
-      Device.playCue(b.phase.name, language).catchError((Object _) {
+      Device.playCue(
+        b.phase.name,
+        language,
+        seconds:
+            (b.phase == BreathPhase.inhale || b.phase == BreathPhase.exhale)
+            ? pace ~/ 2
+            : null,
+      ).catchError((Object _) {
         if (mounted) {
           setState(() {
             voice = false;
@@ -241,7 +255,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         }
       });
     }
-    if (b.phase == BreathPhase.retention || b.phase == BreathPhase.done) {
+    if (haptics &&
+        (b.phase == BreathPhase.retention || b.phase == BreathPhase.done)) {
       HapticFeedback.mediumImpact();
     }
   }
@@ -317,23 +332,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final light = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF087F8C),
-      brightness: Brightness.light,
-    );
-    final dark = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF67D6D1),
-      brightness: Brightness.dark,
-    );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Easy Hof',
-      theme: ThemeData(
-        colorScheme: light,
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF4F8F7),
-      ),
-      darkTheme: ThemeData(colorScheme: dark, useMaterial3: true),
+      theme: nordicTheme(Brightness.light, wear: isWear),
+      darkTheme: nordicTheme(Brightness.dark, wear: isWear),
       themeMode: isWear ? ThemeMode.dark : ThemeMode.system,
       home: Builder(
         builder: (innerContext) {
@@ -378,7 +381,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 650),
+            constraints: const BoxConstraints(maxWidth: 560),
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 isWear ? 18 : 24,
@@ -471,7 +474,6 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   }
 
   Widget panel(List<Widget> children) => Card(
-    elevation: 0,
     margin: const EdgeInsets.symmetric(vertical: 8),
     child: Padding(
       padding: EdgeInsets.all(isWear ? 8 : 20),
@@ -500,7 +502,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           IconButton(
             visualDensity: VisualDensity.compact,
             padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Weniger', 'Less'),
             onPressed: value > min
                 ? () => change((value - step).clamp(min, max))
@@ -516,7 +518,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           IconButton(
             visualDensity: VisualDensity.compact,
             padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Mehr', 'More'),
             onPressed: value < max
                 ? () => change((value + step).clamp(min, max))
@@ -529,12 +531,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   );
 
   List<Widget> breathingSetup() => [
+    if (!isWear) const NordicLandscape(),
     Text(
       t('Ein ruhiger Moment. Nur für dich.', 'A quiet moment. Just for you.'),
     ),
     panel([
-      const Icon(Icons.air_rounded, size: 56),
-      space(),
       Text(
         t('Dein Atemrhythmus', 'Your breathing rhythm'),
         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
@@ -571,7 +572,10 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         contentPadding: EdgeInsets.zero,
         title: Text(t('Sprachführung', 'Voice guidance')),
         subtitle: Text(
-          t('Integrierte deutsche Stimme', 'Bundled English voice'),
+          t(
+            'Atemgeräusche & deutsche Ansagen',
+            'Breath sounds & English guidance',
+          ),
         ),
         value: voice,
         onChanged: (v) {
@@ -580,10 +584,9 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         },
       ),
       space(),
-      FilledButton.icon(
+      SunButton(
         onPressed: busy || cold != null ? null : () => action(startBreathing),
-        icon: const Icon(Icons.play_arrow),
-        label: Text(t('Atmen starten', 'Start breathing')),
+        label: t('Atmen starten', 'Start breathing'),
       ),
     ]),
     Text(
@@ -619,7 +622,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               durationLabel(elapsed),
               style: TextStyle(
                 fontSize: isWear ? 38 : 64,
-                fontWeight: FontWeight.w300,
+                fontWeight: FontWeight.w600,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
@@ -732,10 +735,9 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           display: goal == 0 ? t('Ohne', 'None') : durationLabel(goal * 1000),
         ),
         space(),
-        FilledButton.icon(
+        SunButton(
           onPressed: busy ? null : () => action(startCold),
-          icon: const Icon(Icons.play_arrow),
-          label: Text(t('Starten', 'Start')),
+          label: t('Starten', 'Start'),
         ),
       ]),
       Text(
@@ -1014,7 +1016,46 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   }
 
   List<Widget> settingsView() => [
+    if (!isWear)
+      panel([
+        const Icon(Icons.watch_rounded, size: 32),
+        space(),
+        Text(
+          t('Easy Hof auf deiner Uhr', 'Easy Hof on your watch'),
+          style: const TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        space(),
+        Text(
+          t(
+            'Eigenständig trainieren. Später synchronisieren. Installiere die enthaltene Wear-App direkt über WLAN.',
+            'Train independently. Sync later. Install the bundled Wear app directly over Wi-Fi.',
+          ),
+        ),
+        space(),
+        SunButton(
+          icon: Icons.download_rounded,
+          label: t('Uhr-App installieren', 'Install watch app'),
+          onPressed: () => Navigator.of(dialogContext).push(
+            MaterialPageRoute<void>(
+              builder: (_) => WatchInstall(language: language),
+            ),
+          ),
+        ),
+      ]),
     panel([
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(t('Vibration', 'Haptics')),
+        value: haptics,
+        onChanged: (value) {
+          setState(() => haptics = value);
+          settings();
+        },
+      ),
       Text(
         t('Sprache & Stimme', 'Language & voice'),
         style: const TextStyle(fontSize: 20),
@@ -1175,11 +1216,23 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                     child: Center(
                       child: AnimatedContainer(
                         duration: Duration(
-                          milliseconds: b.paused ? 0 : pace * 500,
+                          milliseconds:
+                              b.paused ||
+                                  MediaQuery.disableAnimationsOf(context)
+                              ? 0
+                              : pace * 500,
                         ),
                         curve: Curves.easeInOut,
-                        width: b.phase == BreathPhase.inhale ? 220 : 165,
-                        height: b.phase == BreathPhase.inhale ? 220 : 165,
+                        width:
+                            !MediaQuery.disableAnimationsOf(context) &&
+                                b.phase == BreathPhase.inhale
+                            ? 192
+                            : 160,
+                        height:
+                            !MediaQuery.disableAnimationsOf(context) &&
+                                b.phase == BreathPhase.inhale
+                            ? 192
+                            : 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Theme.of(context).colorScheme.primaryContainer,
@@ -1193,7 +1246,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 40,
-                              fontWeight: FontWeight.w300,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),

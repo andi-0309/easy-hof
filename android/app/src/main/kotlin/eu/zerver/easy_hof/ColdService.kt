@@ -111,6 +111,8 @@ class ColdService : Service(), SensorEventListener {
         if (accuracy <= SensorManager.SENSOR_STATUS_UNRELIABLE) { status = "unreliable"; bpm = null }
     }
     private fun vibrate() {
+        val settings = SessionStore.setting(this, null)
+        if (settings.isNotBlank() && !JSONObject(settings).optBoolean("haptics", true)) return
         val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 250, 150, 250), -1))
     }

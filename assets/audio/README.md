@@ -29,3 +29,13 @@ python3 tools/check_voice_assets.py
 ```
 
 Generation can vary slightly because neural synthesis uses noise. Review regenerated speech and update the committed files/manifest together. CI checks asset integrity and Flutter bundle inclusion; testing on actual phone/watch speakers is still useful.
+
+## Non-verbal breath sounds
+
+`breath/inhale-{2,3,4}.mp3` and `breath/exhale-{2,3,4}.mp3` are original,
+deterministically synthesized air-noise cues. `tools/generate_breath_sounds.py`
+creates distinct filtered noise and smooth envelopes for inhalation/exhalation.
+No third-party recordings, cloned voice or speech model is involved. Each phase
+uses its matching duration at normal playback speed; no pitch shifting. Existing
+spoken inhale/exhale clips are retained for provenance but are not played during
+training. Disable voice guidance to mute both breath sounds and spoken cues.

@@ -1,7 +1,7 @@
 name: easy_hof
 description: Offline breathing and cold training for Android and Wear OS.
 publish_to: none
-version: 1.0.0+1
+version: 1.1.0+10100
 environment:
   sdk: '>=3.11.0 <4.0.0'
 dependencies:
@@ -16,3 +16,12 @@ flutter:
   assets:
     - assets/audio/de/
     - assets/audio/en/
+    - assets/audio/breath/
+    - assets/images/
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf

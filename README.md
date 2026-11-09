@@ -1,68 +1,121 @@
+<div align="center">
+
 # Easy Hof
+### Ein klarer Kopf. Ein ruhiger Atem. Dein Moment.
 
-Eine einfache Flutter-App für angeleitete Atemübungen und Kältetraining. Android-Smartphone und eigenständige Wear-OS-App, Deutsch und Englisch. Keine Werbung, kein Konto, kein eigener Server.
+Offline-Atemtraining und Kälteroutinen für **Android & Wear OS**.
+Deutsch und Englisch. Ohne Konto. Ohne Abo. Ohne Tracking.
 
-## Funktionen
+[![Build](https://github.com/andreas-aichele/easy-hof/actions/workflows/android.yml/badge.svg)](https://github.com/andreas-aichele/easy-hof/actions/workflows/android.yml)
+[![Release](https://img.shields.io/github/v/release/andreas-aichele/easy-hof)](https://github.com/andreas-aichele/easy-hof/releases)
+[![Flutter](https://img.shields.io/badge/Built_with-Flutter-075B68)](https://flutter.dev)
 
-- **Atmen:** 1–10 Runden, 10–60 Atemzüge, 4/6/8 Sekunden pro Atemzug. Animation und fest eingebundene deutsche/englische Sprachdateien. Freies Atemhalten bis zum manuellen Fortsetzen, 15 Sekunden Erholungsatem mit jederzeit möglichem Ausatmen, dann 5 Sekunden normales Atmen. Pause und vorzeitiges Beenden.
-- **Kälte:** Dusche oder Eisbad, Stoppuhr, optionale Zielzeit mit Vibration, manuell eingegebene Temperatur in 0,5-°C-Schritten. Keine Notizen.
-- **Wear OS:** Eigenständiger Kälte-Timer mit optionalem Puls. Erfasst Mittelwert/Minimum/Maximum gültiger Sensorwerte. Fehlende/alte/unzuverlässige Messwerte werden explizit gekennzeichnet. Aufzeichnung läuft bei ausgeschaltetem Display weiter.
-- **Verlauf:** Atemhaltezeiten pro Runde, Dauer, Temperatur, Pulsstatistik, Herkunftsgerät und vorzeitiger Abbruch. Einzelne Einheiten löschen.
-- **Sync:** Wear OS Data Layer zwischen gekoppelten Geräten, auch nach Offline-Aufzeichnung. Gleiche Paket-ID und Signatur für beide APKs. Eindeutige IDs verhindern Duplikate; Löschmarkierungen verhindern Wiederherstellung gelöschter Daten durch alte Offline-Kopien.
-- **Backup:** Auf dem Smartphone Verlauf als JSON über den Android-Dateidialog exportieren/importieren. IDs bleiben erhalten; doppelte Einheiten werden zusammengeführt. Die Datei enthält Trainingsdaten und sollte an einem selbst gewählten sicheren Ort liegen.
-- **Datenschutz:** Lokale Speicherung, Android-Cloud-Backup deaktiviert, keine Internetberechtigung in Release-APKs, keine Analyse-Dienste. Geräte-Sync nutzt die vom Betriebssystem bereitgestellte Google-Play-Services/Wear-OS-Verbindung; kein Easy-Hof-Backend. Ohne Play Services bleiben die lokalen Funktionen nutzbar, Geräte-Sync ist dann nicht verfügbar.
+[**App herunterladen**](https://github.com/andreas-aichele/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Mitmachen](#mitmachen)
+
+![Nordic Elements – warme Lichtflächen und kühle Bergschatten](assets/images/nordic-mountains.webp)
+
+</div>
+
+## Weniger Ablenkung. Mehr bei dir.
+
+Easy Hof begleitet dich durch Atemrunden, die kalte Dusche und dein Eisbad.
+Eine ruhige Oberfläche im Stil **Nordic Elements** verbindet Eisblau und Petrol
+mit warmen Sonnenakzenten. Große Bedienelemente, klare Zahlen und ein dunkles
+Design für den Abend lassen Platz für das Wesentliche: deine Routine.
+
+| Atme in deinem Rhythmus | Finde deinen Moment in der Kälte |
+| --- | --- |
+| Einstellbare Runden, Atemzüge und Tempo | Dusche und Eisbad getrennt erfassen |
+| Sanfte Atemgeräusche zum Mitatmen | Dauer und optionale Temperatur festhalten |
+| Deutsche und englische Sprachführung | Optionales Zeitziel |
+| Atemhalten ohne Leistungsdruck | Herzfrequenz auf unterstützten Uhren |
+| Übersichtlicher Trainingsverlauf | Eigenständiges Training mit Wear OS |
+
+Alle Ansagen, Atemgeräusche und Schriften sind in der App enthalten. Dein Training
+funktioniert offline. Sitzungen bleiben lokal, lassen sich als JSON sichern und
+zwischen gekoppeltem Smartphone und Uhr über die Wear OS Data Layer abgleichen.
+Keine eigene Cloud, kein Benutzerkonto, keine Analyse-SDKs. Die Google-Play-Dienste
+werden für die Kommunikation zwischen Uhr und Smartphone benötigt.
 
 ## Installation
 
-Unter [GitHub Actions](https://github.com/andreas-aichele/easy-hof/actions/workflows/android.yml) einen erfolgreichen Lauf öffnen und die Artefakte `easy-hof-phone-dev` und `easy-hof-wear-dev` herunterladen und entpacken. Die Phone-APK auf dem Smartphone installieren; Wear-APK über ADB auf der Uhr installieren:
+### Mit Obtainium: Updates direkt von GitHub
 
-```sh
-adb -s PHONE_SERIAL install -r app-phone-release.apk
-adb -s WATCH_SERIAL install -r app-wear-release.apk
-```
+1. Installiere [Obtainium](https://github.com/ImranR98/Obtainium/releases/latest) auf deinem Android-Smartphone.
+2. Wähle **App hinzufügen** und füge diese URL ein:
+   ```text
+   https://github.com/andreas-aichele/easy-hof
+   ```
+3. Setze den **APK-Filter / regulären Ausdruck** auf:
+   ```regex
+   ^easy-hof-phone\.apk$
+   ```
+   Damit wählt Obtainium die Smartphone-App, nicht die separate Wear-APK.
+4. Füge die App hinzu, installiere sie und erlaube Obtainium bei Bedarf das
+   Installieren unbekannter Apps. Künftige veröffentlichte Releases werden über
+   diese Quelle gefunden.
 
-Android 9 / API 28 oder neuer. Für die Watch wird eine Wear-OS-Uhr mit Android API 28+ benötigt; Herzfrequenz setzt einen kompatiblen Sensor voraus. Auf beiden Geräten muss dieselbe Build-/Signaturfamilie installiert sein. Die Uhr vorher regulär mit dem Smartphone koppeln. Unter **Einstellungen → Synchronisieren** kann der automatische Sync zusätzlich manuell angestoßen werden. „Übertragung vorgemerkt“ bedeutet im System hinterlegt, nicht bestätigter Empfang auf dem anderen Gerät.
+Obtainium verwendet **Releases**, keine temporären Actions-Artefakte. Falls noch kein
+Release veröffentlicht wurde, gibt es dort noch keine installierbare Version.
 
-Die deutschen und englischen **Sprachdateien sind in beiden APKs enthalten**. Kein TTS-Dienst, keine installierte Systemstimme und kein Nachladen nötig. Unter Einstellungen lässt sich die Stimme testen. Kurze Atemsignale passen auch in das schnellste Tempo. Sprache wird bei Pause oder Verlassen der App gestoppt. Details, Texte und Herkunft stehen in [assets/audio/README.md](assets/audio/README.md).
+### Direkt herunterladen
 
-## Entwicklung
+Öffne die [Releases](https://github.com/andreas-aichele/easy-hof/releases), lade
+`easy-hof-phone.apk` und installiere sie auf dem Smartphone. `easy-hof-wear.apk`
+ist ausschließlich für die Uhr. Für beide APKs liegen SHA-256-Prüfsummen bei.
+Android 9+ für das Smartphone; für die integrierte WLAN-Installation Wear OS 3+.
 
-Flutter **3.47.9**, Dart aus diesem SDK, JDK 17, Android SDK 36. Die Flutter-App wird in zwei Flavors gebaut:
+## Deine Uhr. Deine Routine.
 
-```sh
-flutter pub get --enforce-lockfile
-flutter analyze
-flutter test test/breathing_test.dart test/widget_test.dart
-flutter test --dart-define=WEAR=true test/wear_test.dart
-flutter build apk --release --flavor phone
-flutter build apk --release --flavor wear --dart-define=WEAR=true
-cd android
-./gradlew :app:testPhoneDebugUnitTest
-```
+Starte ein Kältetraining direkt am Handgelenk – auch wenn dein Smartphone zu Hause
+liegt. Dauer, Temperatur und optional Herzfrequenz werden auf der Uhr erfasst.
+Sind die regulär gekoppelten Geräte wieder verbunden, können sie ihre Sitzungen
+abgleichen. Herzfrequenzzugriff ist optional und benötigt die Sensorberechtigung.
 
-CI führt Formatprüfung, Analyse, Tests und beide APK-Builds bei Push, Pull Request und manuell aus. Keine automatische Veröffentlichung im Play Store.
+**Installation aus Easy Hof, ohne Computer:**
 
-### Signierung
+1. Verbinde Uhr und Smartphone mit demselben WLAN.
+2. Öffne auf dem Smartphone **Easy Hof → Einstellungen → Uhr-App installieren**.
+3. Aktiviere auf der Uhr Entwickleroptionen, ADB-Debugging und WLAN-Debugging.
+4. Wähle auf der Uhr **Mit Kopplungscode koppeln** und trage IP-Adresse,
+   Kopplungsport und Code in Easy Hof ein.
+5. Gehe auf der Uhr zurück zur WLAN-Debugging-Seite. Übernimm den dortigen
+   **Verbindungsport** (anders als der Kopplungsport) und tippe auf **Installieren**.
+6. Öffne Easy Hof auf der Uhr. Deaktiviere WLAN-Debugging danach wieder.
 
-CI baut beide APKs im **gleichen Job** mit demselben automatisch erzeugten Android-Testschlüssel. So funktioniert die Geräte-Synchronisierung innerhalb eines Build-Paars. Der private Testschlüssel wird nicht veröffentlicht. Bei einem neuen CI-Lauf ändert sich dieser Schlüssel: Vor Installation eines neuen Entwicklungspaars müssen alte Installationen entfernt werden; lokale Daten gehen dabei verloren, sofern sie nicht vorher exportiert wurden.
+Die passende Wear-APK ist bereits in der Smartphone-App enthalten. Updates der
+Uhr installierst du über denselben Bildschirm; nach dem Handy-Update ist auch die
+neue Wear-APK enthalten. Obtainium aktualisiert die Uhr **nicht automatisch**.
+Beide Apps müssen aus derselben Release-Serie mit identischer Signatur stammen.
+Die WLAN-Verbindung dient nur der von dir gestarteten Installation. Es werden
+keine Trainingsdaten an einen Server übertragen.
 
-Für dauerhafte Nutzung externen privaten Keystore über `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` bereitstellen und für beide Geräte verwenden. Die CI unterstützt optional die Repository-Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Mit diesen werden beide APKs stabil signiert. Schlüssel niemals ins Repository einchecken. Ein einmaliger Wechsel von Test- auf private Signatur erfordert Neuinstallation.
+## Bewusst trainieren
 
-## Verhalten & Grenzen
+Atemübungen nur sitzend oder liegend an einem sicheren, trockenen Ort durchführen.
+**Nie im Wasser, unter der Dusche oder beim Fahren.** Nicht erzwingen und bei
+Unwohlsein abbrechen. Easy Hof ist eine unabhängige App, kein Medizinprodukt und
+keine offizielle App der Wim-Hof-Methode. Medizinische Hinweise stehen vor dem
+Training direkt in der App.
 
-- Atemübungen sind auf dem Smartphone verfügbar; die Uhr konzentriert sich auf Kälte und Verlauf. Beim Verlassen der Atemansicht oder Ausschalten des Displays pausiert die Übung. Keine heimlich weiterlaufenden Atemphasen.
-- Kälte-Timer nutzt monotone Zeit, Foreground-Service und einen auf zwei Stunden begrenzten Wake-Lock. Nach zwei Stunden wird die Einheit automatisch als vorzeitig beendet gespeichert.
-- Android kann Apps trotzdem beenden. Alle fünf Sekunden wird ein Kälte-Checkpoint gespeichert; nach Prozessende/Neustart wird dieser als unterbrochene Einheit wiederhergestellt. Es werden keine fiktiven Pulswerte oder nachträglichen Laufzeiten erzeugt.
-- Herzfrequenz ist eine Sensor-Zusammenfassung, kein lückenloses medizinisches Signal. Es werden keine Rohdatenkurven aufgezeichnet. Temperatur stammt von der manuellen Eingabe, nicht vom Hauttemperatursensor.
-- Aktive Atemübungen sind flüchtig, abgeschlossene/gezielt beendete Übungen werden gespeichert. Noch nicht gespeicherte Atemübungen gehen bei erzwungenem Prozessende verloren.
-- Sync erfordert die Systemkomponenten von Google/Wear OS und eine vorhandene Verbindung. Noch nicht gekoppelte Geräte synchronisieren nicht. Diese App unterhält keine eigene Cloud, kontrolliert aber nicht das Transport-Routing der Wear-OS-Systemdienste.
+## Mitmachen
 
-## Sicherheit
+Fehler gefunden oder eine Idee? [Eröffne ein Issue](https://github.com/andreas-aichele/easy-hof/issues).
+Bitte nenne Gerät, Android-/Wear-OS-Version und Schritte zum Nachstellen.
+Beiträge zu Bedienbarkeit, Übersetzungen und Barrierefreiheit sind willkommen.
 
-Atemübungen ausschließlich sitzend oder liegend an einem sicheren, trockenen Ort — nie im Wasser, in der Dusche oder beim Fahren. Kein Wettkampf um Atemhaltezeiten. Bei Unwohlsein abbrechen. Im Eisbad normal atmen und nicht allein trainieren. Bei Schwangerschaft, Epilepsie oder Herz-/Kreislauferkrankungen vorher ärztlich abklären. Puls ist bei Kälte möglicherweise ungenau und kein Sicherheitsindikator. Keine medizinische Anwendung, keine offizielle Wim-Hof-App.
+- [Builds, Signierung & Releases](docs/RELEASING.md)
+- [Audio-Erzeugung und Herkunft](assets/audio/README.md)
+- [Design und Drittanbieter](docs/ATTRIBUTIONS.md)
 
-Grundlage: [Offizielle Atemtechnik](https://www.wimhofmethod.com/breathing-exercises), [WHM FAQ](https://www.wimhofmethod.com/faq).
+Der Quellcode ist einsehbar; eine Projektlizenz wird vom Maintainer festgelegt.
+Die enthaltenen Schriften und Bibliotheken behalten ihre jeweiligen Lizenzen.
 
-## Noch am Gerät prüfen
+---
 
-Vor einer stabilen Veröffentlichung: echte Pixel Watch (Sensorzugriff, Berechtigung verweigert, Display aus), Bluetooth-Trennung und späterer Sync, identische Signatur, eingebundene Audiodateien, Prozessende/Neustart und Batterieverbrauch. Emulator- und Unit-Tests ersetzen diese Hardwaretests nicht.
+**English:** Easy Hof is an offline Android and Wear OS companion for guided
+breathing and cold routines. Follow natural breath sounds, choose German or
+English guidance, and keep your history on your devices. Install the phone APK
+through Obtainium using the repository URL and the `^easy-hof-phone\.apk$` filter.
+Use **Settings → Install watch app** to pair via Wireless debugging and install
+the included watch APK. No account, subscription or analytics.

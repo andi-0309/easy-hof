@@ -28,6 +28,7 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "eu.zerver.easyhof/device").setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
+                    "watchPair", "watchInstall" -> WatchInstaller.handle(this, call, result)
                     "snapshot" -> result.success(SessionStore.snapshot(this).toString())
                     "settings" -> result.success(SessionStore.setting(this, call.argument<String>("json")))
                     "saveSession" -> { SessionStore.newSession(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }
@@ -39,7 +40,7 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "playCue" -> {
-                        playCue(call.argument<String>("cue") ?: "", call.argument<String>("language") ?: "en")
+                        playCue(call.argument<String>("cue") ?: "", call.argument<String>("language") ?: "en", call.argument<Int>("seconds") ?: 3)
                         result.success(null)
                     }
                     "stopSpeech" -> { stopAudio(); result.success(null) }
@@ -81,14 +82,15 @@ class MainActivity : FlutterActivity() {
         }
         SessionSync.sync(this)
     }
-    private fun playCue(cue: String, language: String) {
+    private fun playCue(cue: String, language: String, seconds: Int) {
         require(language in setOf("de", "en")) { "Unknown audio language" }
         require(cue in setOf("welcome", "countdown", "inhale", "exhale", "retention", "recovery", "rest", "done")) { "Unknown audio cue" }
         stopAudio()
-        val key = "$language/$cue"
+        require(seconds in 2..4) { "Invalid breath duration" }
+        val key = if (cue == "inhale" || cue == "exhale") "breath/$cue-$seconds" else "$language/$cue"
         val file = cachedClips.getOrPut(key) {
             val path = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset("assets/audio/$key.mp3")
-            File(cacheDir, "easy-hof-$language-$cue.mp3").also { destination ->
+            File(cacheDir, "easy-hof-${key.replace('/', '-')}.mp3").also { destination ->
                 assets.open(path).use { input -> destination.outputStream().use { output -> input.copyTo(output) } }
             }
         }

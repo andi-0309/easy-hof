@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
 class Device {
@@ -13,7 +14,15 @@ class Device {
     await call('saveSession', {'json': jsonEncode(session)});
   }
 
-  static Future<void> playCue(String cue, String language) async {
-    await call('playCue', {'cue': cue, 'language': language});
+  static Future<void> playCue(
+    String cue,
+    String language, {
+    int? seconds,
+  }) async {
+    await call('playCue', {
+      'cue': cue,
+      'language': language,
+      'seconds': ?seconds,
+    });
   }
 }
