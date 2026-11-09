@@ -9,9 +9,14 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.ConscryptMode
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
+// These tests exercise JSON persistence, not TLS. The phone's Android-native
+// Conscrypt library cannot run in the Linux host JVM; use Robolectric's
+// supported BouncyCastle provider for this test class only.
+@ConscryptMode(ConscryptMode.Mode.OFF)
 class SessionStoreTest {
     private lateinit var context: Context
     @Before fun setup() {
