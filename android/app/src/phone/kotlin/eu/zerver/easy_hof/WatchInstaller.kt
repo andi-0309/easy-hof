@@ -16,17 +16,19 @@ import java.util.Date
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import javax.security.auth.x500.X500Principal
 
 /** User-initiated, LAN-only installer. Never accepts arbitrary commands or APKs. */
 object WatchInstaller {
-    private val active = AtomicBoolean(false)
+    private val active = AtomicReference<Any?>(null)
     private val worker = Executors.newCachedThreadPool()
     private val watchdog = Executors.newSingleThreadScheduledExecutor()
     private const val alias = "easy-hof-watch-installer"
 
     fun handle(activity: Activity, call: MethodCall, result: MethodChannel.Result) {
-        if (!active.compareAndSet(false, true)) {
+        val operation = Any()
+        if (!active.compareAndSet(null, operation)) {
             result.error("busy", "Watch operation already running", null); return
         }
         val answered = AtomicBoolean(false)
@@ -46,7 +48,7 @@ object WatchInstaller {
                 val connection = manager
                 timeout = watchdog.schedule({
                     if (answered.compareAndSet(false, true)) {
-                        active.set(false)
+                        active.compareAndSet(operation, null)
                         activity.runOnUiThread { result.error("timeout", "Watch timed out. Check Wi-Fi, keep its debugging screen open, and retry.", null) }
                     }
                     worker.execute { try { connection.disconnect() } catch (_: Exception) {} }
@@ -80,7 +82,7 @@ object WatchInstaller {
             } finally {
                 timeout?.cancel(false)
                 try { manager?.disconnect() } catch (_: Exception) {}
-                active.set(false)
+                active.compareAndSet(operation, null)
             }
         }
     }

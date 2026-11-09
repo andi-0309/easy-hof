@@ -91,6 +91,8 @@ jobs:
           args=()
           if [ -n "${RELEASE_VERSION:-}" ]; then args+=(--build-name "$RELEASE_VERSION" --build-number "$RELEASE_CODE"); fi
           flutter --suppress-analytics build apk --release --flavor phone "${args[@]}"
+      - name: Verify bundled watch installer
+        run: python3 tools/check_apk_bundle.py build/app/outputs/flutter-apk/app-phone-release.apk build/app/outputs/flutter-apk/app-wear-release.apk
       - name: Prepare release assets
         run: |
           mkdir -p dist

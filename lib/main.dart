@@ -499,8 +499,13 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            visualDensity: VisualDensity.compact,
+          IconButton.filledTonal(
+            style: IconButton.styleFrom(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Weniger', 'Less'),
@@ -515,8 +520,13 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
+          IconButton.filledTonal(
+            style: IconButton.styleFrom(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Mehr', 'More'),
