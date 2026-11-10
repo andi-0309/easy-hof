@@ -1,4 +1,4 @@
-package eu.zerver.easy_hof
+package io.github.andi_0309.easyhof
 
 import android.content.Context
 import org.json.JSONObject

@@ -6,11 +6,11 @@
 Offline-Atemtraining und Kälteroutinen für **Android & Wear OS**.
 Deutsch und Englisch. Ohne Konto. Ohne Abo. Ohne Tracking.
 
-[![Build](https://github.com/andreas-aichele/easy-hof/actions/workflows/android.yml/badge.svg)](https://github.com/andreas-aichele/easy-hof/actions/workflows/android.yml)
-[![Release](https://img.shields.io/github/v/release/andreas-aichele/easy-hof)](https://github.com/andreas-aichele/easy-hof/releases)
+[![Build](https://github.com/andi-0309/easy-hof/actions/workflows/android.yml/badge.svg)](https://github.com/andi-0309/easy-hof/actions/workflows/android.yml)
+[![Release](https://img.shields.io/github/v/release/andi-0309/easy-hof)](https://github.com/andi-0309/easy-hof/releases)
 [![Flutter](https://img.shields.io/badge/Built_with-Flutter-075B68)](https://flutter.dev)
 
-[**App herunterladen**](https://github.com/andreas-aichele/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Mitmachen](#mitmachen)
+[**App herunterladen**](https://github.com/andi-0309/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Mitmachen](#mitmachen)
 
 ![Nordic Elements – warme Lichtflächen und kühle Bergschatten](assets/images/nordic-mountains.webp)
 
@@ -44,7 +44,7 @@ werden für die Kommunikation zwischen Uhr und Smartphone benötigt.
 1. Installiere [Obtainium](https://github.com/ImranR98/Obtainium/releases/latest) auf deinem Android-Smartphone.
 2. Wähle **App hinzufügen** und füge diese URL ein:
    ```text
-   https://github.com/andreas-aichele/easy-hof
+   https://github.com/andi-0309/easy-hof
    ```
 3. Setze den **APK-Filter / regulären Ausdruck** auf:
    ```regex
@@ -60,7 +60,7 @@ Release veröffentlicht wurde, gibt es dort noch keine installierbare Version.
 
 ### Direkt herunterladen
 
-Öffne die [Releases](https://github.com/andreas-aichele/easy-hof/releases), lade
+Öffne die [Releases](https://github.com/andi-0309/easy-hof/releases), lade
 `easy-hof-phone.apk` und installiere sie auf dem Smartphone. `easy-hof-wear.apk`
 ist ausschließlich für die Uhr. Für beide APKs liegen SHA-256-Prüfsummen bei.
 Android 9+ für das Smartphone; für die integrierte WLAN-Installation Wear OS 3+.
@@ -100,7 +100,7 @@ Training direkt in der App.
 
 ## Mitmachen
 
-Fehler gefunden oder eine Idee? [Eröffne ein Issue](https://github.com/andreas-aichele/easy-hof/issues).
+Fehler gefunden oder eine Idee? [Eröffne ein Issue](https://github.com/andi-0309/easy-hof/issues).
 Bitte nenne Gerät, Android-/Wear-OS-Version und Schritte zum Nachstellen.
 Beiträge zu Bedienbarkeit, Übersetzungen und Barrierefreiheit sind willkommen.
 

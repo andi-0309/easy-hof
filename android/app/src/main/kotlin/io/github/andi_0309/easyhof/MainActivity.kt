@@ -1,4 +1,4 @@
-package eu.zerver.easy_hof
+package io.github.andi_0309.easyhof
 
 import android.Manifest
 import android.content.Intent
@@ -25,7 +25,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         volumeControlStream = AudioManager.STREAM_MUSIC
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "eu.zerver.easyhof/device").setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "io.github.andi_0309.easyhof/device").setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
                     "watchPair", "watchInstall" -> WatchInstaller.handle(this, call, result)

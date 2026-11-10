@@ -91,6 +91,13 @@ jobs:
           args=()
           if [ -n "${RELEASE_VERSION:-}" ]; then args+=(--build-name "$RELEASE_VERSION" --build-number "$RELEASE_CODE"); fi
           flutter --suppress-analytics build apk --release --flavor phone "${args[@]}"
+      - name: Verify Android package identity in both APKs
+        shell: bash
+        run: |
+          for flavor in phone wear; do
+            "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "build/app/outputs/flutter-apk/app-$flavor-release.apk" > "$RUNNER_TEMP/$flavor-badging.txt"
+            grep -F "package: name='io.github.andi_0309.easyhof'" "$RUNNER_TEMP/$flavor-badging.txt"
+          done
       - name: Verify bundled watch installer
         run: python3 tools/check_apk_bundle.py build/app/outputs/flutter-apk/app-phone-release.apk build/app/outputs/flutter-apk/app-wear-release.apk
       - name: Prepare release assets

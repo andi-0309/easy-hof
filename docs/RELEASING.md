@@ -2,6 +2,13 @@
 
 Flutter 3.47.9, Java 17, Android SDK 36. Phone and watch use the same application ID,
 version and signing certificate so Wear OS Data Layer can exchange sessions.
+The Android application ID and Kotlin namespace for both flavors are
+`io.github.andi_0309.easyhof`. Use this package name in Google Play Console.
+
+This application ID is a new Android app identity. Existing installations under
+the former ID are separate apps. Export their JSON backup and import it into the
+new app when retaining training history. Update both phone and watch to the new
+identity for synchronization.
 
 ## One-time private signing setup
 

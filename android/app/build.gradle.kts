@@ -3,14 +3,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 android {
-    namespace = "eu.zerver.easy_hof"
+    namespace = "io.github.andi_0309.easyhof"
     compileSdk = 36
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     defaultConfig {
-        applicationId = "eu.zerver.easy_hof"
+        applicationId = "io.github.andi_0309.easyhof"
         minSdk = 28
         targetSdk = 36
         versionCode = flutter.versionCode

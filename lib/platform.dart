@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 class Device {
-  static const channel = MethodChannel('eu.zerver.easyhof/device');
+  static const channel = MethodChannel('io.github.andi_0309.easyhof/device');
   static Future<T?> call<T>(String method, [Map<String, dynamic>? args]) =>
       channel.invokeMethod<T>(method, args);
   static Future<Map<String, dynamic>> snapshot() async =>
