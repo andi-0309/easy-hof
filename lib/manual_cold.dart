@@ -223,8 +223,9 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                                           firstDate: DateTime(1970),
                                           lastDate: now,
                                         );
-                                        if (selected != null)
+                                        if (selected != null) {
                                           date.text = dateText(selected);
+                                        }
                                       },
                               ),
                       ),
