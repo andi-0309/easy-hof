@@ -31,8 +31,9 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(Device.channel, (call) async {
             calls.add(call);
-            if (call.method == 'settings')
+            if (call.method == 'settings') {
               return jsonEncode({'language': 'en'});
+            }
             if (call.method == 'snapshot') return jsonEncode({'sessions': []});
             return null;
           });
