@@ -214,42 +214,18 @@ class BreathingPage extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 16),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: colors.surface,
-                                      border: Border.all(
-                                        color: colors.primary.withValues(
-                                          alpha: .25,
-                                        ),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: colors.primary.withValues(
-                                            alpha: .2,
-                                          ),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: IconButton(
-                                      tooltip: voice
-                                          ? t('Ton ausschalten', 'Mute audio')
-                                          : t(
-                                              'Ton einschalten',
-                                              'Enable audio',
-                                            ),
-                                      onPressed: onToggleVoice,
-                                      iconSize: 26,
-                                      padding: const EdgeInsets.all(13),
-                                      icon: Icon(
-                                        voice
-                                            ? Icons.volume_up_rounded
-                                            : Icons.volume_off_rounded,
-                                        color: colors.onSurface,
-                                      ),
+                                  NordicIconButton(
+                                    tooltip: voice
+                                        ? t('Ton ausschalten', 'Mute audio')
+                                        : t('Ton einschalten', 'Enable audio'),
+                                    onPressed: onToggleVoice,
+                                    iconSize: 26,
+                                    padding: const EdgeInsets.all(13),
+                                    icon: Icon(
+                                      voice
+                                          ? Icons.volume_up_rounded
+                                          : Icons.volume_off_rounded,
+                                      color: colors.onSurface,
                                     ),
                                   ),
                                 ],

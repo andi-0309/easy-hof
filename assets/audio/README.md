@@ -13,7 +13,7 @@ Easy Hof includes 18 synthesized speech clips: nine in German and nine in Englis
 
 Mono MP3, 22,050 Hz, 96 kbit/s. Leading/trailing silence trimmed, soft onset, two-pass loudness normalization targeting −18 LUFS and a −1.5 dBTP ceiling. `manifest.json` records the measured final MP3 loudness, true peak, duration, size and checksum for every clip. No decoded clip exceeds 0 dBTP. Inhale/exhale clips are shorter than 1.8 seconds, so they fit into the minimum two-second half-breath. Countdown clips fit within the three-second countdown.
 
-During playback, the previous cue stops before the next one starts. Pausing, leaving the app or losing audio focus stops playback. A playback failure disables speech for the current session and shows a message while the visual guide remains usable.
+During playback, the previous cue stops before the next one starts. Pausing, leaving the app or muting guidance stops playback. Training cues are mixed into the media stream without acquiring or abandoning the music app’s audio focus between cues. A playback failure disables speech for the current session and shows a message while the visual guide remains usable.
 
 ## Rebuild
 

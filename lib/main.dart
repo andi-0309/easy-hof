@@ -192,11 +192,12 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           title: Text(title),
           content: SingleChildScrollView(child: Text(message)),
           actions: [
-            TextButton(
+            NordicButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(t('Zurück', 'Back')),
             ),
-            FilledButton(
+            NordicButton(
+              tone: NordicTone.sun,
               onPressed: () => Navigator.pop(context, true),
               child: Text(accept ?? t('Verstanden', 'Understood')),
             ),
@@ -327,7 +328,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     }
   }
 
-  Widget manualColdButton() => OutlinedButton.icon(
+  Widget manualColdButton() => NordicButton.icon(
     onPressed: busy ? null : () => action(addManualCold),
     icon: const Icon(Icons.add_rounded),
     label: Text(t('Manuell nachtragen', 'Add manually')),
@@ -416,7 +417,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           : AppBar(
               title: const Text('Easy Hof'),
               actions: [
-                IconButton(
+                NordicIconButton(
                   tooltip: t('Einstellungen', 'Settings'),
                   onPressed: () => setState(() => tab = 3),
                   icon: const Icon(Icons.tune_rounded),
@@ -438,7 +439,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                 if (isWear)
                   Row(
                     children: [
-                      IconButton(
+                      NordicIconButton(
                         tooltip: t('Kälte', 'Cold'),
                         visualDensity: VisualDensity.compact,
                         onPressed: () => setState(() => tab = 1),
@@ -451,7 +452,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                       ),
-                      IconButton(
+                      NordicIconButton(
                         tooltip: tab == 2
                             ? t('Einstellungen', 'Settings')
                             : t('Verlauf', 'History'),
@@ -475,7 +476,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                       child: Column(
                         children: [
                           Text(error!),
-                          TextButton(
+                          NordicButton(
                             onPressed: () => setState(() => error = null),
                             child: Text(t('Schließen', 'Dismiss')),
                           ),
@@ -491,7 +492,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       ),
       bottomNavigationBar: isWear
           ? null
-          : NavigationBar(
+          : NordicNavigationBar(
               selectedIndex: tab == 3 ? 0 : tab,
               onDestinationSelected: (i) => setState(() => tab = i),
               destinations: [
@@ -535,13 +536,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton.filledTonal(
-            style: IconButton.styleFrom(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          NordicIconButton(
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Weniger', 'Less'),
@@ -556,13 +551,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
-          IconButton.filledTonal(
-            style: IconButton.styleFrom(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+          NordicIconButton(
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: t('Mehr', 'More'),
@@ -695,7 +684,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               textAlign: TextAlign.center,
             ),
           space(),
-          FilledButton.icon(
+          NordicButton.icon(
             onPressed: busy
                 ? null
                 : () => action(() async {
@@ -722,7 +711,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       ),
       panel([
         if (isWear)
-          DropdownButton<String>(
+          NordicDropdown<String>(
+            height: 48,
             isExpanded: true,
             value: coldType,
             items: [
@@ -738,7 +728,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
             onChanged: (v) => setState(() => coldType = v!),
           )
         else
-          SegmentedButton<String>(
+          NordicSegmented<String>(
             showSelectedIcon: false,
             segments: [
               ButtonSegment(
@@ -806,7 +796,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(26, 24, 26, 40),
+          padding: const EdgeInsets.fromLTRB(26, 20, 26, 40),
           children: [
             if (a == null)
               Row(
@@ -815,13 +805,13 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                   const Flexible(
                     child: Text('Easy Hof', style: TextStyle(fontSize: 12)),
                   ),
-                  IconButton(
+                  NordicIconButton(
                     visualDensity: VisualDensity.compact,
                     tooltip: t('Verlauf', 'History'),
                     onPressed: () => setState(() => tab = 2),
                     icon: const Icon(Icons.history, size: 20),
                   ),
-                  IconButton(
+                  NordicIconButton(
                     visualDensity: VisualDensity.compact,
                     tooltip: t('Einstellungen', 'Settings'),
                     onPressed: () => setState(() => tab = 3),
@@ -835,7 +825,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             if (a == null) ...[
-              DropdownButton<String>(
+              NordicDropdown<String>(
+                height: 48,
                 isExpanded: true,
                 value: coldType,
                 items: [
@@ -906,7 +897,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
-              FilledButton(
+              NordicButton(
                 onPressed: busy
                     ? null
                     : () => action(() async {
@@ -1031,7 +1022,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         style: const TextStyle(fontSize: 20),
       ),
       space(),
-      SegmentedButton<String>(
+      NordicSegmented<String>(
         showSelectedIcon: false,
         segments: const [
           ButtonSegment(value: 'de', label: Text('DE')),
@@ -1043,7 +1034,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           settings();
         },
       ),
-      TextButton.icon(
+      NordicButton.icon(
         onPressed: () => action(() async {
           await Device.playCue('welcome', language);
         }),
@@ -1075,7 +1066,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         Text(
           '${t('Zuletzt empfangen', 'Last received')}: ${dateLabel(data['lastReceived'] as String)}',
         ),
-      OutlinedButton.icon(
+      NordicButton.icon(
         onPressed: busy
             ? null
             : () => action(() async {
@@ -1099,7 +1090,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
             'Save or restore history as a JSON file. Existing sessions are not duplicated.',
           ),
         ),
-        OutlinedButton.icon(
+        NordicButton.icon(
           onPressed: busy
               ? null
               : () => action(() async {
@@ -1108,7 +1099,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           icon: const Icon(Icons.file_download_outlined),
           label: Text(t('Exportieren', 'Export')),
         ),
-        OutlinedButton.icon(
+        NordicButton.icon(
           onPressed: busy
               ? null
               : () => action(() async {
@@ -1132,7 +1123,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         ),
       ),
       const SizedBox(height: 8),
-      TextButton.icon(
+      NordicButton.icon(
         icon: const Icon(Icons.privacy_tip_outlined),
         label: Text(t('Datenschutz', 'Privacy policy')),
         onPressed: () => Navigator.of(dialogContext).push(
@@ -1141,7 +1132,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.2.1'),
+      const Text('Version 1.2.2'),
     ]),
   ];
 

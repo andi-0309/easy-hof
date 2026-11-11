@@ -80,45 +80,38 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: Size(48, wear ? 48 : 56),
-        elevation: 5,
-        shadowColor: fjord.withValues(alpha: .45),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: scheme.primary.withValues(alpha: .35),
-            width: 1.5,
-          ),
-        ),
-        textStyle: const TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      ),
+      style: _frameworkButtonStyle(scheme, wear),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        minimumSize: Size(48, wear ? 48 : 56),
-        backgroundColor: scheme.primaryContainer,
-        foregroundColor: scheme.onPrimaryContainer,
+      style: _frameworkButtonStyle(scheme, wear),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: _frameworkButtonStyle(scheme, wear),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        backgroundColor: const Color(0xFFC3F2F8),
+        foregroundColor: fjord,
+        surfaceTintColor: Colors.transparent,
         elevation: 4,
-        shadowColor: fjord.withValues(alpha: .35),
-        side: BorderSide(
-          color: scheme.primary.withValues(alpha: .35),
-          width: 1.5,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: EdgeInsets.symmetric(horizontal: wear ? 12 : 20, vertical: 14),
+        shadowColor: const Color(0xFF197F94),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? sun
+            : const Color(0xFFC3F2F8),
+      ),
+      trackColor: WidgetStatePropertyAll(scheme.primaryContainer),
+      trackOutlineColor: WidgetStatePropertyAll(scheme.primary),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: scheme.surface.withValues(alpha: .85),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-      contentPadding: const EdgeInsets.all(16),
+      contentPadding: const EdgeInsets.all(12),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: scheme.surface,
@@ -141,6 +134,28 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
     ),
   );
 }
+
+ButtonStyle _frameworkButtonStyle(ColorScheme scheme, bool wear) =>
+    TextButton.styleFrom(
+      backgroundColor: const Color(0xFFC3F2F8),
+      foregroundColor: fjord,
+      disabledBackgroundColor: const Color(0xFF9DD8E1),
+      disabledForegroundColor: const Color(0xFF397583),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: const Color(0xFF197F94),
+      elevation: 4,
+      minimumSize: Size(40, wear ? 40 : 48),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFF58ABBB)),
+      ),
+      textStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w700,
+        fontSize: 15,
+      ),
+    );
 
 /// Resolution-independent ridgelines appear behind every route, including Wear OS.
 class NordicBackdrop extends StatelessWidget {
@@ -197,7 +212,7 @@ class MountainPainter extends CustomPainter {
     final compact = w < 260;
     final band = Rect.fromLTWH(
       0,
-      h * (compact ? .57 : .405),
+      h - h * (compact ? .38 : .235),
       w,
       h * (compact ? .38 : .235),
     );
@@ -427,18 +442,6 @@ class MountainPainter extends CustomPainter {
     tree(sw * .115, sh * .91, sh * .23);
     tree(sw * .88, sh * .90, sh * .24);
     tree(sw * .94, sh * .88, sh * .31);
-    // Mist dissolves the bottom of the landscape back into the page.
-    canvas.drawRect(
-      atmosphere,
-      Paint()
-        ..blendMode = BlendMode.dstIn
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.white, Colors.white, Colors.transparent],
-          stops: [0, .68, 1],
-        ).createShader(Rect.fromLTWH(0, 0, sw, sh * 1.13)),
-    );
     canvas.restore();
     canvas.restore();
   }
@@ -494,7 +497,169 @@ class NordicCard extends StatelessWidget {
   }
 }
 
-class SunButton extends StatefulWidget {
+enum NordicTone { sun, ice, petrol }
+
+List<Color> nordicButtonColors(NordicTone tone, {bool disabled = false}) =>
+    switch (tone) {
+      NordicTone.sun =>
+        disabled
+            ? const [Color(0xFFFFDEAD), Color(0xFFFFB361)]
+            : const [Color(0xFFFFC05A), Color(0xFFFF8B17)],
+      NordicTone.ice =>
+        disabled
+            ? const [Color(0xFFD8F3F7), Color(0xFF9DD8E1)]
+            : const [Color(0xFFC3F2F8), Color(0xFF51B9CD)],
+      NordicTone.petrol =>
+        disabled
+            ? const [Color(0xFF7FC1CC), Color(0xFF3F899A)]
+            : const [Color(0xFF259CAF), Color(0xFF006379)],
+    };
+
+/// One opaque 3D surface for every app-owned action. Material has zero
+/// elevation and tint so a transparent elevated Material cannot grey the fill.
+class NordicButton extends StatefulWidget {
+  const NordicButton({
+    super.key,
+    required this.onPressed,
+    required this.child,
+    this.tone = NordicTone.ice,
+    this.height = 56,
+    this.fontSize = 16,
+    this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+    this.radius = 24,
+    this.minWidth = 48,
+  }) : icon = null,
+       label = null;
+  const NordicButton.icon({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+    this.tone = NordicTone.ice,
+    this.height = 56,
+    this.fontSize = 16,
+    this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+    this.radius = 24,
+    this.minWidth = 48,
+  }) : child = null;
+  final VoidCallback? onPressed;
+  final Widget? child, icon, label;
+  final NordicTone tone;
+  final double height, fontSize, radius, minWidth;
+  final EdgeInsetsGeometry padding;
+  @override
+  State<NordicButton> createState() => _NordicButtonState();
+}
+
+class _NordicButtonState extends State<NordicButton> {
+  bool down = false;
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onPressed != null;
+    final foreground = widget.tone == NordicTone.petrol ? Colors.white : fjord;
+    final ridge = switch (widget.tone) {
+      NordicTone.sun => const Color(0xFFB95300),
+      NordicTone.ice => const Color(0xFF197F94),
+      NordicTone.petrol => const Color(0xFF003D50),
+    };
+    final radius = BorderRadius.circular(widget.radius);
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: AnimatedContainer(
+          duration: Duration(
+            milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 90,
+          ),
+          transform: Matrix4.translationValues(0, down && enabled ? 3 : 0, 0),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: nordicButtonColors(widget.tone, disabled: !enabled),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .5),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: ridge.withValues(alpha: enabled ? 1 : .4),
+                offset: Offset(0, down ? 1 : 4),
+              ),
+              if (enabled)
+                BoxShadow(
+                  color: ridge.withValues(alpha: .18),
+                  blurRadius: 12,
+                  offset: const Offset(0, 7),
+                ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            elevation: 0,
+            borderRadius: radius,
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: widget.onPressed,
+              borderRadius: radius,
+              splashColor: Colors.white.withValues(alpha: .2),
+              highlightColor: Colors.white.withValues(alpha: .10),
+              onHighlightChanged: enabled
+                  ? (value) => setState(() => down = value)
+                  : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: widget.minWidth,
+                  minHeight: widget.height,
+                ),
+                child: Padding(
+                  padding: widget.padding,
+                  child: Center(
+                    widthFactor: 1,
+                    heightFactor: 1,
+                    child: IconTheme.merge(
+                      data: IconThemeData(
+                        color: foreground.withValues(alpha: enabled ? 1 : .65),
+                      ),
+                      child: DefaultTextStyle.merge(
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: widget.fontSize,
+                          fontWeight: FontWeight.w700,
+                          color: foreground.withValues(
+                            alpha: enabled ? 1 : .65,
+                          ),
+                        ),
+                        child: widget.icon == null
+                            ? widget.child!
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  widget.icon!,
+                                  const SizedBox(width: 8),
+                                  Flexible(child: widget.label!),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SunButton extends StatelessWidget {
   const SunButton({
     super.key,
     required this.onPressed,
@@ -508,76 +673,214 @@ class SunButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final String label;
   final IconData icon;
-  final bool secondary;
-  final bool large;
-  final bool deep;
+  final bool secondary, large, deep;
   final double? height;
   @override
-  State<SunButton> createState() => _SunButtonState();
+  Widget build(BuildContext context) => NordicButton.icon(
+    onPressed: onPressed,
+    icon: Icon(icon),
+    label: Text(label),
+    tone: deep
+        ? NordicTone.petrol
+        : secondary
+        ? NordicTone.ice
+        : NordicTone.sun,
+    height: height ?? (large ? 76 : 56),
+    fontSize: large ? 21 : 16,
+    radius: 32,
+  );
 }
 
-class _SunButtonState extends State<SunButton> {
-  bool down = false;
+class NordicIconButton extends StatelessWidget {
+  const NordicIconButton({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    this.tooltip,
+    this.iconSize = 24,
+    this.padding,
+    this.constraints,
+    this.visualDensity,
+  });
+  final VoidCallback? onPressed;
+  final Widget icon;
+  final String? tooltip;
+  final double iconSize;
+  final EdgeInsetsGeometry? padding;
+  final BoxConstraints? constraints;
+  final VisualDensity? visualDensity;
   @override
   Widget build(BuildContext context) {
-    final disabled = widget.onPressed == null;
-    final reduced = MediaQuery.disableAnimationsOf(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Listener(
-        onPointerDown: disabled ? null : (_) => setState(() => down = true),
-        onPointerUp: (_) => setState(() => down = false),
-        onPointerCancel: (_) => setState(() => down = false),
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: reduced ? 0 : 100),
-          transform: Matrix4.translationValues(0, down && !disabled ? 3 : 0, 0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            gradient: disabled
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: widget.deep
-                        ? [const Color(0xFF36A2B3), const Color(0xFF086B7E)]
-                        : widget.secondary
-                        ? [const Color(0xFFB1EBF1), const Color(0xFF56BDCE)]
-                        : [const Color(0xFFFFD49A), sun],
-                  ),
-            color: disabled ? const Color(0xFFD3D9D9) : null,
-            boxShadow: disabled
-                ? []
-                : [
-                    BoxShadow(
-                      color: widget.deep
-                          ? const Color(0xFF024C5D)
-                          : widget.secondary
-                          ? const Color(0xFF346B79)
-                          : const Color(0xFFA95729),
-                      offset: Offset(0, down ? 1 : 4),
-                    ),
-                  ],
-          ),
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(
-              minimumSize: Size(48, widget.height ?? (widget.large ? 76 : 56)),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              textStyle: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: widget.large ? 21 : 16,
-                fontWeight: FontWeight.w700,
-              ),
-              backgroundColor: Colors.transparent,
-              disabledBackgroundColor: Colors.transparent,
-              foregroundColor: widget.deep ? Colors.white : fjord,
-              disabledForegroundColor: const Color(0xFF397583),
+    final small = visualDensity == VisualDensity.compact;
+    final size = constraints?.minWidth ?? (small ? 40.0 : 48.0);
+    final symbol = icon is Icon
+        ? Icon(
+            (icon as Icon).icon,
+            size: (icon as Icon).size ?? iconSize,
+            color: fjord,
+            semanticLabel: (icon as Icon).semanticLabel,
+          )
+        : icon;
+    final button = NordicButton(
+      onPressed: onPressed,
+      height: size,
+      minWidth: size,
+      radius: 16,
+      padding: padding ?? EdgeInsets.all(small ? 8 : 10),
+      child: symbol,
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
+  }
+}
+
+class NordicSegmented<T> extends StatelessWidget {
+  const NordicSegmented({
+    super.key,
+    required this.segments,
+    required this.selected,
+    required this.onSelectionChanged,
+    this.showSelectedIcon = false,
+  });
+  final List<ButtonSegment<T>> segments;
+  final Set<T> selected;
+  final ValueChanged<Set<T>>? onSelectionChanged;
+  final bool showSelectedIcon;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      for (var i = 0; i < segments.length; i++) ...[
+        if (i > 0) const SizedBox(width: 8),
+        Expanded(
+          child: Semantics(
+            selected: selected.contains(segments[i].value),
+            child: NordicButton(
+              onPressed: onSelectionChanged == null || !segments[i].enabled
+                  ? null
+                  : () => onSelectionChanged!({segments[i].value}),
+              tone: selected.contains(segments[i].value)
+                  ? NordicTone.petrol
+                  : NordicTone.ice,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: segments[i].label ?? Text('${segments[i].value}'),
             ),
-            onPressed: widget.onPressed,
-            icon: Icon(widget.icon),
-            label: Text(widget.label),
           ),
         ),
+      ],
+    ],
+  );
+}
+
+class NordicDropdown<T> extends StatelessWidget {
+  const NordicDropdown({
+    super.key,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.isExpanded = true,
+    this.height = 56,
+  });
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?>? onChanged;
+  final bool isExpanded;
+  final double height;
+  @override
+  Widget build(BuildContext context) => NordicButton(
+    onPressed: onChanged == null
+        ? null
+        : () async {
+            final choice = await showDialog<T>(
+              context: context,
+              builder: (context) => SimpleDialog(
+                insetPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.all(12),
+                children: [
+                  for (final item in items)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: NordicButton(
+                        tone: item.value == value
+                            ? NordicTone.petrol
+                            : NordicTone.ice,
+                        onPressed: !item.enabled
+                            ? null
+                            : () => Navigator.pop(context, item.value),
+                        child: item.child,
+                      ),
+                    ),
+                ],
+              ),
+            );
+            if (choice != null) onChanged?.call(choice);
+          },
+    height: height,
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: items.firstWhere((item) => item.value == value).child),
+        const SizedBox(width: 8),
+        const Icon(Icons.expand_more_rounded),
+      ],
+    ),
+  );
+}
+
+class NordicNavigationBar extends StatelessWidget {
+  const NordicNavigationBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.destinations,
+  });
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final List<NavigationDestination> destinations;
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: Colors.transparent,
+    child: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < destinations.length; i++)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Semantics(
+                    selected: i == selectedIndex,
+                    child: NordicButton(
+                      onPressed: () => onDestinationSelected(i),
+                      tone: i == selectedIndex
+                          ? NordicTone.petrol
+                          : NordicTone.ice,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 9,
+                      ),
+                      height: 60,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          destinations[i].icon,
+                          const SizedBox(height: 4),
+                          Text(
+                            destinations[i].label,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
 }

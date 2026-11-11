@@ -145,7 +145,7 @@ class _TrainingHistoryState extends State<TrainingHistory> {
             children: [
               Row(
                 children: [
-                  IconButton(
+                  NordicIconButton(
                     tooltip: t('Voriger Monat', 'Previous month'),
                     onPressed: () => setState(
                       () => month = DateTime(month.year, month.month - 1),
@@ -163,7 +163,7 @@ class _TrainingHistoryState extends State<TrainingHistory> {
                       ),
                     ),
                   ),
-                  IconButton(
+                  NordicIconButton(
                     tooltip: t('Nächster Monat', 'Next month'),
                     onPressed: () => setState(
                       () => month = DateTime(month.year, month.month + 1),
@@ -254,12 +254,21 @@ class _TrainingHistoryState extends State<TrainingHistory> {
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
-                                          color: sessions.isEmpty
-                                              ? null
-                                              : Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withValues(alpha: .15),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: nordicButtonColors(
+                                              sessions.isEmpty
+                                                  ? NordicTone.ice
+                                                  : NordicTone.petrol,
+                                            ),
+                                          ),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Color(0xFF197F94),
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
                                           border: isToday
                                               ? Border.all(
                                                   color: Theme.of(
@@ -277,6 +286,9 @@ class _TrainingHistoryState extends State<TrainingHistory> {
                                               '$day',
                                               style: TextStyle(
                                                 fontSize: compact ? 10 : 13,
+                                                color: sessions.isEmpty
+                                                    ? fjord
+                                                    : Colors.white,
                                                 fontWeight: sessions.isEmpty
                                                     ? FontWeight.w400
                                                     : FontWeight.w700,
@@ -483,7 +495,7 @@ class _TrainingDayState extends State<TrainingDay> {
                         ),
                         Align(
                           alignment: Alignment.centerRight,
-                          child: IconButton(
+                          child: NordicIconButton(
                             tooltip: t('Löschen', 'Delete'),
                             icon: const Icon(Icons.delete_outline),
                             onPressed: busy

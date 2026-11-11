@@ -6,10 +6,7 @@ import android.content.ActivityNotFoundException
 import android.net.Uri
 import android.content.pm.PackageManager
 import android.os.Build
-import android.media.MediaPlayer
 import android.media.AudioManager
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import io.flutter.FlutterInjector
 import java.io.File
 import android.view.WindowManager
@@ -19,8 +16,7 @@ import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
-    private var player: MediaPlayer? = null
-    private var focus: AudioFocusRequest? = null
+    private val cueAudio = CueAudioPlayer()
     private val cachedClips = mutableMapOf<String, File>()
     private var documentResult: MethodChannel.Result? = null
     private var permissionResult: MethodChannel.Result? = null
@@ -108,32 +104,9 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
-        val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
-        val manager = getSystemService(AUDIO_SERVICE) as AudioManager
-        focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-            .setAudioAttributes(attributes).setOnAudioFocusChangeListener { change -> if (change < 0) stopAudio() }.build()
-        if (manager.requestAudioFocus(focus!!) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            stopAudio(); error("Audio focus unavailable")
-        }
-        val next = MediaPlayer()
-        player = next
-        try {
-            next.apply {
-                setAudioAttributes(attributes)
-                setDataSource(file.absolutePath)
-                setOnCompletionListener { completed -> if (player === completed) stopAudio() }
-                setOnErrorListener { _, _, _ -> stopAudio(); true }
-                prepare()
-                start()
-            }
-        } catch (error: Exception) { stopAudio(); throw error }
+        cueAudio.play(file, spoken = cue != "inhale" && cue != "exhale")
     }
-    private fun stopAudio() {
-        player?.release(); player = null
-        focus?.let { (getSystemService(AUDIO_SERVICE) as AudioManager).abandonAudioFocusRequest(it) }
-        focus = null
-    }
+    private fun stopAudio() = cueAudio.stop()
     override fun onStop() { stopAudio(); super.onStop() }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

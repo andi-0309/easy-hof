@@ -193,12 +193,11 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                       ),
                     ),
                     gap(),
-                    DropdownButtonFormField<String>(
-                      initialValue: kind,
+                    Text(t('Training', 'Training')),
+                    const SizedBox(height: 8),
+                    NordicDropdown<String>(
+                      value: kind,
                       isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: t('Training', 'Training'),
-                      ),
                       items: [
                         DropdownMenuItem(
                           value: 'shower',
@@ -216,7 +215,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                     gap(),
                     Text(t('Beendet am', 'Finished on')),
                     const SizedBox(height: 8),
-                    OutlinedButton.icon(
+                    NordicButton.icon(
                       key: const Key('manual-date'),
                       onPressed: saving ? null : pickDate,
                       icon: const Icon(Icons.calendar_today_rounded),
@@ -229,7 +228,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                     gap(),
                     Text(t('Uhrzeit', 'Time')),
                     const SizedBox(height: 8),
-                    OutlinedButton.icon(
+                    NordicButton.icon(
                       key: const Key('manual-time'),
                       onPressed: saving ? null : pickTime,
                       icon: const Icon(Icons.schedule_rounded),
