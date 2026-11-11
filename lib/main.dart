@@ -149,7 +149,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       landscape.value = switch (b.phase) {
         BreathPhase.inhale => progress,
         BreathPhase.exhale => 1 - progress,
-        BreathPhase.recovery => 1,
+        BreathPhase.recovery => (b.phaseMs / 1200).clamp(0.0, 1.0),
+        BreathPhase.rest => 1 - progress,
         _ => 0,
       };
       if (++pulseTicks % 5 == 0) sendBreathingPulse();
@@ -1083,7 +1084,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.3.1'),
+      const Text('Version 1.3.2'),
     ]),
   ];
 

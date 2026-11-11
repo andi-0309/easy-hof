@@ -246,7 +246,16 @@ class MountainPainter extends CustomPainter {
     final atmosphere = Rect.fromLTWH(0, -s.height * .4, w, s.height * 1.7);
     canvas.saveLayer(atmosphere, Paint());
     final sw = s.width, sh = s.height;
-    final sunCenter = Offset(sw * .77 + breath * 6, sh * .22 - breath * 18);
+    final expansion = Curves.easeInOutSine.transform(breath.clamp(0.0, 1.0));
+    // Every depth plane grows around the same bottom-center anchor. Peaks,
+    // snow and facets share a transform, so the illustration stays coherent.
+    void zoom(double amplitude) {
+      canvas.translate(sw * .5, sh);
+      canvas.scale(1 + expansion * amplitude);
+      canvas.translate(-sw * .5, -sh);
+    }
+
+    final sunCenter = Offset(sw * .77, sh * .22 - expansion * 18);
     canvas.drawCircle(
       sunCenter,
       sw * .12,
@@ -258,7 +267,7 @@ class MountainPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: sunCenter, radius: sw * .12)),
     );
     canvas.save();
-    canvas.translate(-breath * 4.5, -breath * 6);
+    zoom(.02);
     final distant = Path()
       ..moveTo(0, sh * .63)
       ..lineTo(sw * .15, sh * .35)
@@ -276,7 +285,7 @@ class MountainPainter extends CustomPainter {
     );
     canvas.restore();
     canvas.save();
-    canvas.translate(breath * 6, -breath * 12);
+    zoom(.04);
     final peaks = [
       const [
         Offset(-.12, .65),
@@ -379,7 +388,7 @@ class MountainPainter extends CustomPainter {
     canvas.restore();
     for (var i = 0; i < 3; i++) {
       canvas.save();
-      canvas.translate((i - 1) * breath * 4.5, -breath * (i + 1) * 3);
+      zoom(.045 + i * .01);
       final y = sh * (.49 + i * .15);
       final hills = Path()
         ..moveTo(-sw * .08, sh)
@@ -425,6 +434,8 @@ class MountainPainter extends CustomPainter {
       );
       canvas.restore();
     }
+    canvas.save();
+    zoom(.075);
     void tree(double x, double ground, double height) {
       final width = height * .43;
       final path = Path()
@@ -464,6 +475,7 @@ class MountainPainter extends CustomPainter {
     tree(sw * .115, sh * .91, sh * .23);
     tree(sw * .88, sh * .90, sh * .24);
     tree(sw * .94, sh * .88, sh * .31);
+    canvas.restore();
     canvas.restore();
     canvas.restore();
   }
