@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class PrivacyPolicy extends StatelessWidget {
   const PrivacyPolicy({super.key, required this.language});
@@ -15,7 +14,7 @@ class PrivacyPolicy extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: FutureBuilder<String>(
-            future: rootBundle.loadString(
+            future: DefaultAssetBundle.of(context).loadString(
               'assets/privacy/privacy-${language == 'de' ? 'de' : 'en'}.txt',
             ),
             builder: (context, snapshot) {

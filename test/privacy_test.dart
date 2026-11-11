@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,7 +25,7 @@ void main() {
   testWidgets(
     'privacy policy can be read from settings without a network call',
     (tester) async {
-      await tester.runAsync(
+      final policy = await tester.runAsync(
         () => rootBundle.loadString('assets/privacy/privacy-en.txt'),
       );
       final calls = <MethodCall>[];
@@ -37,7 +38,12 @@ void main() {
             if (call.method == 'snapshot') return jsonEncode({'sessions': []});
             return null;
           });
-      await tester.pumpWidget(const EasyHof());
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _PrivacyBundle(policy!),
+          child: const EasyHof(),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.tune_rounded));
       await tester.pumpAndSettle();
@@ -55,4 +61,20 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+}
+
+class _PrivacyBundle extends CachingAssetBundle {
+  _PrivacyBundle(this.policy);
+  final String policy;
+
+  @override
+  Future<ByteData> load(String key) => rootBundle.load(key);
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) {
+    if (key.startsWith('assets/privacy/')) {
+      return Future.value(policy);
+    }
+    return rootBundle.loadString(key, cache: cache);
+  }
 }
