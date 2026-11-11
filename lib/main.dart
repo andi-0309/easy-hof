@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'breathing.dart';
+import 'breathing_view.dart';
 import 'platform.dart';
 import 'nordic.dart';
 import 'privacy_policy.dart';
@@ -576,7 +577,6 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   );
 
   List<Widget> breathingSetup() => [
-    if (!isWear) const NordicLandscape(),
     Text(
       t('Ein ruhiger Moment. Nur für dich.', 'A quiet moment. Just for you.'),
     ),
@@ -1141,7 +1141,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.0.0'),
+      const Text('Version 1.2.1'),
     ]),
   ];
 
@@ -1155,192 +1155,62 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     _ => t('Bereit für Geräte-Sync', 'Ready for device sync'),
   };
 
-  Widget breathingView(BuildContext context) {
-    final b = breathing!;
-    final phaseTitle = switch (b.phase) {
-      BreathPhase.countdown => t('Ankommen', 'Settle in'),
-      BreathPhase.inhale => t('Einatmen', 'Breathe in'),
-      BreathPhase.exhale =>
-        b.isFinalExhale
-            ? t('Entspannt ausatmen', 'Exhale gently')
-            : t('Loslassen', 'Let go'),
-      BreathPhase.retention => t(
-        'Nach dem Ausatmen halten',
-        'Hold after exhaling',
-      ),
-      BreathPhase.recovery => t('Einatmen & halten', 'Breathe in & hold'),
-      BreathPhase.rest => t('Normal atmen', 'Breathe normally'),
-      _ => t('Geschafft', 'Finished'),
-    };
-    final countdown = b.phaseLimit == null
-        ? durationLabel(b.phaseMs)
-        : '${((b.phaseLimit! - b.phaseMs) / 1000).ceil()}';
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('${t('Runde', 'Round')} ${b.round} / ${b.rounds}'),
-          automaticallyImplyLeading: false,
+  Widget breathingView(BuildContext context) => BreathingPage(
+    session: breathing!,
+    language: language,
+    voice: voice,
+    error: error,
+    pendingSave: pendingBreathing != null,
+    onToggleVoice: () => action(() async {
+      setState(() => voice = !voice);
+      if (!voice) {
+        await Device.call('stopSpeech');
+      } else {
+        lastCue = null;
+        cue();
+      }
+      await settings();
+    }),
+    onTogglePause: () {
+      setState(() {
+        breathing!.paused = !breathing!.paused;
+        lastTick = elapsed;
+      });
+      if (breathing!.paused) {
+        Device.call('stopSpeech');
+      } else {
+        lastCue = null;
+        cue();
+      }
+    },
+    onBreatheAgain: () {
+      breathing!.breatheAgain();
+      cue();
+      setState(() {});
+    },
+    onExhale: () {
+      breathing!.phase = BreathPhase.rest;
+      breathing!.phaseMs = 0;
+      cue();
+      setState(() {});
+    },
+    onRetry: () => action(saveBreathing),
+    onFinish: () => action(() async {
+      breathing!.paused = true;
+      await Device.call('stopSpeech');
+      setState(() {});
+      if (await confirm(
+        t('Einheit beenden?', 'End session?'),
+        t(
+          'Abgeschlossene Runden werden gespeichert.',
+          'Completed rounds will be saved.',
         ),
-        bottomNavigationBar:
-            b.phase == BreathPhase.retention || b.phase == BreathPhase.recovery
-            ? ColoredBox(
-                color: Theme.of(context).colorScheme.surface,
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-                    child: SunButton(
-                      large: true,
-                      secondary: b.phase == BreathPhase.recovery,
-                      icon: Icons.air_rounded,
-                      label: b.phase == BreathPhase.retention
-                          ? t('Ich atme wieder', 'I am breathing again')
-                          : t('Jetzt ausatmen', 'Exhale now'),
-                      onPressed: b.paused
-                          ? null
-                          : () {
-                              if (b.phase == BreathPhase.retention) {
-                                b.breatheAgain();
-                              } else {
-                                b.phase = BreathPhase.rest;
-                                b.phaseMs = 0;
-                              }
-                              cue();
-                              setState(() {});
-                            },
-                    ),
-                  ),
-                ),
-              )
-            : null,
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  if (error != null) Text(error!),
-                  Text(
-                    b.paused ? t('Pausiert', 'Paused') : phaseTitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  NordicCard(
-                    child: Column(
-                      children: [
-                        const NordicLandscape(height: 150),
-                        const SizedBox(height: 20),
-                        AnimatedScale(
-                          scale:
-                              b.phase == BreathPhase.inhale &&
-                                  !b.paused &&
-                                  !MediaQuery.disableAnimationsOf(context)
-                              ? 1.12
-                              : 1,
-                          duration: Duration(
-                            milliseconds:
-                                MediaQuery.disableAnimationsOf(context)
-                                ? 0
-                                : pace * 450,
-                          ),
-                          child: Text(
-                            b.phase == BreathPhase.inhale ||
-                                    b.phase == BreathPhase.exhale
-                                ? '${b.breath} / ${b.breaths}'
-                                : countdown,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 54,
-                              fontFamily: 'Manrope',
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        if (b.isFinalExhale) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            t(
-                              'Lass den letzten Atemzug locker ausströmen. Nicht pressen. Danach bleibt der Atem entspannt stehen.',
-                              'Let the last breath flow out naturally. Do not push. Then rest without breathing in.',
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (b.phase == BreathPhase.retention) ...[
-                    Text(
-                      t(
-                        'Kein Wettbewerb. Atme, sobald du Luft brauchst.',
-                        'No competition. Breathe when you need air.',
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    space(),
-                  ],
-                  space(),
-                  if (pendingBreathing != null)
-                    FilledButton(
-                      onPressed: () => action(saveBreathing),
-                      child: Text(t('Erneut speichern', 'Retry save')),
-                    )
-                  else ...[
-                    SunButton(
-                      secondary: true,
-                      large: true,
-                      onPressed: () {
-                        setState(() {
-                          b.paused = !b.paused;
-                          lastTick = elapsed;
-                        });
-                        if (b.paused) {
-                          Device.call('stopSpeech');
-                        } else {
-                          lastCue = null;
-                          cue();
-                        }
-                      },
-                      icon: b.paused ? Icons.play_arrow : Icons.pause,
-                      label: b.paused
-                          ? t('Fortsetzen', 'Resume')
-                          : t('Pause', 'Pause'),
-                    ),
-                    const SizedBox(height: 16),
-                    SunButton(
-                      secondary: true,
-                      icon: Icons.stop_rounded,
-                      label: t('Beenden', 'Finish'),
-                      onPressed: () => action(() async {
-                        b.paused = true;
-                        await Device.call('stopSpeech');
-                        setState(() {});
-                        if (await confirm(
-                          t('Einheit beenden?', 'End session?'),
-                          t(
-                            'Abgeschlossene Runden werden gespeichert.',
-                            'Completed rounds will be saved.',
-                          ),
-                          accept: t('Beenden', 'Finish'),
-                        )) {
-                          await finishBreathing(interrupted: true);
-                        }
-                      }),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+        accept: t('Beenden', 'Finish'),
+      )) {
+        await finishBreathing(interrupted: true);
+      }
+    }),
+  );
 }
 
 // Keep dialog and theme lookups under MaterialApp without a global navigator.

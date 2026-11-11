@@ -1,29 +1,31 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-const fjord = Color(0xFF102F3A);
+const fjord = Color(0xFF063C49);
 const sun = Color(0xFFFFAA5B);
 
 ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
   final dark = brightness == Brightness.dark;
   final scheme =
       ColorScheme.fromSeed(
-        seedColor: const Color(0xFF075B68),
+        seedColor: const Color(0xFF007C90),
         brightness: brightness,
       ).copyWith(
-        primary: dark ? const Color(0xFF94D7DF) : const Color(0xFF075B68),
-        onPrimary: dark ? const Color(0xFF081821) : Colors.white,
+        primary: dark ? const Color(0xFF72E0EB) : const Color(0xFF007C90),
+        onPrimary: dark ? const Color(0xFF0B303B) : Colors.white,
         primaryContainer: dark
-            ? const Color(0xFF193644)
-            : const Color(0xFFCEE8EE),
+            ? const Color(0xFF155564)
+            : const Color(0xFFD6F4F7),
         onPrimaryContainer: dark ? const Color(0xFFE8F3F4) : fjord,
         secondary: sun,
         onSecondary: fjord,
-        surface: dark ? const Color(0xFF081821) : const Color(0xFFEFF5F5),
+        surface: dark ? const Color(0xFF0B303B) : const Color(0xFFF0FAFC),
         onSurface: dark ? const Color(0xFFE8F3F4) : fjord,
         onSurfaceVariant: dark
-            ? const Color(0xFFADC2C8)
-            : const Color(0xFF405C66),
-        outline: dark ? const Color(0xFFADC2C8) : const Color(0xFF637F89),
+            ? const Color(0xFFBBE7EE)
+            : const Color(0xFF397583),
+        outline: dark ? const Color(0xFFBBE7EE) : const Color(0xFF5B95A2),
         error: dark ? const Color(0xFFFFB4AB) : const Color(0xFFB33B32),
       );
   final base = ThemeData(
@@ -66,13 +68,13 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
       ),
     ),
     cardTheme: CardThemeData(
-      color: dark ? const Color(0xFF193644) : Colors.white,
+      color: dark ? const Color(0xFF155564) : Colors.white,
       elevation: wear ? 1 : 5,
       shadowColor: fjord.withValues(alpha: .22),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: dark ? const Color(0xFF87A5B2) : const Color(0xFFCEE8EE),
+          color: dark ? const Color(0xFF87A5B2) : const Color(0xFFD6F4F7),
           width: .7,
         ),
       ),
@@ -145,129 +147,304 @@ class NordicBackdrop extends StatelessWidget {
   const NordicBackdrop({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Theme.of(context).colorScheme.surface,
-    child: Stack(
-      children: [
-        Positioned.fill(
-          child: ExcludeSemantics(
-            child: CustomPaint(
-              painter: MountainPainter(
-                dark: Theme.of(context).brightness == Brightness.dark,
-                subtle: true,
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    value:
+        (Theme.of(context).brightness == Brightness.dark
+                ? SystemUiOverlayStyle.light
+                : SystemUiOverlayStyle.dark)
+            .copyWith(
+              statusBarColor: Colors.transparent,
+              systemNavigationBarColor: Theme.of(context).colorScheme.surface,
+            ),
+    child: ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ExcludeSemantics(
+              child: CustomPaint(
+                painter: MountainPainter(
+                  dark: Theme.of(context).brightness == Brightness.dark,
+                ),
               ),
             ),
           ),
-        ),
-        child,
-      ],
-    ),
-  );
-}
-
-class MountainPainter extends CustomPainter {
-  const MountainPainter({
-    required this.dark,
-    this.subtle = false,
-    this.transparentSky = false,
-  });
-  final bool dark;
-  final bool subtle;
-  final bool transparentSky;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width, h = size.height;
-    final sky = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: dark
-            ? [const Color(0xFF102F3A), const Color(0xFF081821)]
-            : [const Color(0xFFE4F1F1), const Color(0xFFF7F6EF)],
-      ).createShader(Offset.zero & size);
-    if (!subtle && !transparentSky) canvas.drawRect(Offset.zero & size, sky);
-    canvas.drawCircle(
-      Offset(w * .79, h * (subtle ? .16 : .24)),
-      w * (subtle ? .13 : .09),
-      Paint()..color = sun.withValues(alpha: subtle ? (dark ? .06 : .10) : .9),
-    );
-    final top = subtle ? .69 : .22;
-    for (var layer = 0; layer < 3; layer++) {
-      final y = h * (top + layer * .12);
-      final path = Path()
-        ..moveTo(0, h)
-        ..lineTo(0, y + h * .23)
-        ..lineTo(w * .16, y + h * .10)
-        ..lineTo(w * .29, y + h * .20)
-        ..lineTo(w * .52, y)
-        ..lineTo(w * .70, y + h * .20)
-        ..lineTo(w * .86, y + h * .07)
-        ..lineTo(w, y + h * .24)
-        ..lineTo(w, h)
-        ..close();
-      canvas.drawShadow(
-        path,
-        fjord.withValues(alpha: subtle ? .08 : .3),
-        6,
-        false,
-      );
-      final colors = dark
-          ? [
-              const Color(0xFF427381),
-              const Color(0xFF245461),
-              const Color(0xFF102F3A),
-            ]
-          : [
-              const Color(0xFFA5CDD2),
-              const Color(0xFF639DA7),
-              const Color(0xFF255C6B),
-            ];
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = colors[layer].withValues(
-            alpha: subtle ? (dark ? .18 : .13) : 1,
-          ),
-      );
-      if (layer == 0 && !subtle) {
-        final snow = Path()
-          ..moveTo(w * .52, y)
-          ..lineTo(w * .44, y + h * .07)
-          ..lineTo(w * .51, y + h * .05)
-          ..lineTo(w * .56, y + h * .09)
-          ..lineTo(w * .59, y + h * .08)
-          ..close();
-        canvas.drawPath(snow, Paint()..color = const Color(0xFFE8F3F4));
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(MountainPainter old) =>
-      old.dark != dark ||
-      old.subtle != subtle ||
-      old.transparentSky != transparentSky;
-}
-
-class NordicLandscape extends StatelessWidget {
-  const NordicLandscape({super.key, this.height = 112});
-  final double height;
-  @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: SizedBox(
-        height: height,
-        width: double.infinity,
-        child: CustomPaint(
-          painter: MountainPainter(
-            dark: Theme.of(context).brightness == Brightness.dark,
-            transparentSky: true,
-          ),
-        ),
+          child,
+        ],
       ),
     ),
   );
+}
+
+/// A single scenic background: layered snowy ridges, foothills, trees and mist.
+/// Coordinates are normalized so no bitmap or foreground illustration is needed.
+class MountainPainter extends CustomPainter {
+  const MountainPainter({required this.dark});
+  final bool dark;
+
+  Path polygon(Size s, List<Offset> points) {
+    final path = Path()
+      ..moveTo(points.first.dx * s.width, points.first.dy * s.height);
+    for (final p in points.skip(1)) {
+      path.lineTo(p.dx * s.width, p.dy * s.height);
+    }
+    return path..close();
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final compact = w < 260;
+    final band = Rect.fromLTWH(
+      0,
+      h * (compact ? .57 : .405),
+      w,
+      h * (compact ? .38 : .235),
+    );
+    final skyTop = dark ? const Color(0xFF123D4B) : const Color(0xFFF0FAFC);
+    final skyBottom = dark ? const Color(0xFF0B303B) : const Color(0xFFEAF7F9);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [skyTop, skyBottom],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.save();
+    canvas.translate(band.left, band.top);
+    final s = band.size;
+    final atmosphere = Rect.fromLTWH(0, -s.height * .4, w, s.height * 1.7);
+    canvas.saveLayer(atmosphere, Paint());
+    final sw = s.width, sh = s.height;
+    final sunCenter = Offset(sw * .77, sh * .22);
+    canvas.drawCircle(
+      sunCenter,
+      sw * .12,
+      Paint()
+        ..shader = RadialGradient(
+          colors: dark
+              ? [const Color(0xFFFFC477), const Color(0xFFFF9D42)]
+              : [const Color(0xFFFFD49A), const Color(0xFFFFA04A)],
+        ).createShader(Rect.fromCircle(center: sunCenter, radius: sw * .12)),
+    );
+    final distant = Path()
+      ..moveTo(0, sh * .63)
+      ..lineTo(sw * .15, sh * .35)
+      ..lineTo(sw * .31, sh * .54)
+      ..lineTo(sw * .54, sh * .22)
+      ..lineTo(sw * .72, sh * .48)
+      ..lineTo(sw * .90, sh * .30)
+      ..lineTo(sw, sh * .47)
+      ..lineTo(sw, sh)
+      ..lineTo(0, sh)
+      ..close();
+    canvas.drawPath(
+      distant,
+      Paint()..color = dark ? const Color(0xFF417F92) : const Color(0xFFB9E0E8),
+    );
+    final peaks = [
+      const [
+        Offset(-.12, .65),
+        Offset(.06, .34),
+        Offset(.115, .29),
+        Offset(.21, .055),
+        Offset(.25, .18),
+        Offset(.31, .26),
+        Offset(.37, .43),
+        Offset(.47, .61),
+        Offset(.57, .82),
+        Offset(-.12, .94),
+      ],
+      const [
+        Offset(.42, .78),
+        Offset(.55, .51),
+        Offset(.67, .34),
+        Offset(.735, .17),
+        Offset(.805, .12),
+        Offset(.88, .29),
+        Offset(.96, .40),
+        Offset(1.12, .71),
+        Offset(1.12, .96),
+      ],
+    ];
+    for (var i = 0; i < peaks.length; i++) {
+      final mountain = polygon(s, peaks[i]);
+      canvas.drawPath(
+        mountain,
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: dark
+                ? [const Color(0xFF7FC7D5), const Color(0xFF33869A)]
+                : [const Color(0xFF83C6D4), const Color(0xFF50A4B8)],
+          ).createShader(Offset.zero & s),
+      );
+    }
+    final snow = dark ? const Color(0xFFD9EDF0) : const Color(0xFFFFF8EE);
+    canvas.drawPath(
+      polygon(s, const [
+        Offset(.21, .055),
+        Offset(.25, .18),
+        Offset(.31, .26),
+        Offset(.37, .43),
+        Offset(.29, .34),
+        Offset(.263, .37),
+        Offset(.22, .23),
+        Offset(.20, .27),
+        Offset(.17, .20),
+        Offset(.19, .15),
+      ]),
+      Paint()..color = snow,
+    );
+    canvas.drawPath(
+      polygon(s, const [
+        Offset(.805, .12),
+        Offset(.88, .29),
+        Offset(.96, .40),
+        Offset(.89, .35),
+        Offset(.85, .38),
+        Offset(.82, .29),
+        Offset(.77, .32),
+        Offset(.80, .21),
+        Offset(.75, .25),
+      ]),
+      Paint()..color = snow,
+    );
+    final shadow = Paint()
+      ..color = (dark ? const Color(0xFF136778) : const Color(0xFF2F91A6))
+          .withValues(alpha: .55);
+    for (final facet in [
+      const [
+        Offset(.21, .055),
+        Offset(.19, .29),
+        Offset(.08, .58),
+        Offset(.25, .36),
+        Offset(.20, .44),
+        Offset(.31, .66),
+        Offset(.18, .72),
+      ],
+      const [
+        Offset(.805, .12),
+        Offset(.81, .35),
+        Offset(.70, .62),
+        Offset(.88, .44),
+        Offset(.79, .67),
+        Offset(.96, .62),
+      ],
+      const [
+        Offset(.115, .29),
+        Offset(.06, .56),
+        Offset(-.02, .63),
+        Offset(.09, .50),
+      ],
+    ]) {
+      canvas.drawPath(polygon(s, facet), shadow);
+    }
+    for (var i = 0; i < 3; i++) {
+      final y = sh * (.49 + i * .15);
+      final hills = Path()
+        ..moveTo(-sw * .08, sh)
+        ..lineTo(-sw * .08, y + sh * .13)
+        ..cubicTo(
+          sw * .12,
+          y - sh * .12,
+          sw * .18,
+          y - sh * .06,
+          sw * .35,
+          y + sh * .08,
+        )
+        ..cubicTo(
+          sw * .56,
+          y + sh * .28,
+          sw * .69,
+          y - sh * .16,
+          sw * 1.06,
+          y + sh * .01,
+        )
+        ..lineTo(sw * 1.06, sh * 1.1)
+        ..lineTo(-sw * .08, sh * 1.1)
+        ..close();
+      final colors = dark
+          ? [
+              const Color(0xFF358799),
+              const Color(0xFF246E80),
+              const Color(0xFF145465),
+            ]
+          : [
+              const Color(0xFF75BBCB),
+              const Color(0xFF4095A9),
+              const Color(0xFF236F82),
+            ];
+      canvas.drawPath(
+        hills,
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [colors[i], colors[i].withValues(alpha: .72)],
+          ).createShader(Offset.zero & s),
+      );
+    }
+    void tree(double x, double ground, double height) {
+      final width = height * .43;
+      final path = Path()
+        ..moveTo(x, ground - height)
+        ..lineTo(x - width * .38, ground - height * .55)
+        ..lineTo(x - width * .16, ground - height * .58)
+        ..lineTo(x - width * .58, ground - height * .26)
+        ..lineTo(x - width * .27, ground - height * .29)
+        ..lineTo(x - width * .72, ground - height * .05)
+        ..lineTo(x - width * .07, ground - height * .10)
+        ..lineTo(x - width * .07, ground)
+        ..lineTo(x + width * .07, ground)
+        ..lineTo(x + width * .07, ground - height * .10)
+        ..lineTo(x + width * .72, ground - height * .05)
+        ..lineTo(x + width * .27, ground - height * .29)
+        ..lineTo(x + width * .58, ground - height * .26)
+        ..lineTo(x + width * .16, ground - height * .58)
+        ..lineTo(x + width * .38, ground - height * .55)
+        ..close();
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = dark ? const Color(0xFF0D485A) : const Color(0xFF1A6174),
+      );
+    }
+
+    for (var i = 0; i < 34; i++) {
+      final x = sw * i / 33;
+      final edge = (x / sw - .5).abs() * 2;
+      final ground = sh * (.97 - edge * .13);
+      final height =
+          sh *
+          (.035 + math.pow(edge, 2) * (.12 + .06 * math.sin(i * 2.7).abs()));
+      tree(x, ground, height);
+    }
+    tree(sw * .07, sh * .89, sh * .29);
+    tree(sw * .115, sh * .91, sh * .23);
+    tree(sw * .88, sh * .90, sh * .24);
+    tree(sw * .94, sh * .88, sh * .31);
+    // Mist dissolves the bottom of the landscape back into the page.
+    canvas.drawRect(
+      atmosphere,
+      Paint()
+        ..blendMode = BlendMode.dstIn
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, Colors.white, Colors.transparent],
+          stops: [0, .68, 1],
+        ).createShader(Rect.fromLTWH(0, 0, sw, sh * 1.13)),
+    );
+    canvas.restore();
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(MountainPainter old) => old.dark != dark;
 }
 
 class NordicCard extends StatelessWidget {
@@ -289,11 +466,11 @@ class NordicCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: dark
-              ? [const Color(0xFF244957), const Color(0xFF142F3C)]
-              : [Colors.white.withValues(alpha: .97), const Color(0xFFE4F0F0)],
+              ? [const Color(0xFF216E7D), const Color(0xFF154957)]
+              : [Colors.white.withValues(alpha: .97), const Color(0xFFE7F7FA)],
         ),
         border: Border.all(
-          color: (dark ? const Color(0xFF94D7DF) : Colors.white).withValues(
+          color: (dark ? const Color(0xFF72E0EB) : Colors.white).withValues(
             alpha: .55,
           ),
         ),
@@ -325,12 +502,16 @@ class SunButton extends StatefulWidget {
     this.icon = Icons.play_arrow_rounded,
     this.secondary = false,
     this.large = false,
+    this.deep = false,
+    this.height,
   });
   final VoidCallback? onPressed;
   final String label;
   final IconData icon;
   final bool secondary;
   final bool large;
+  final bool deep;
+  final double? height;
   @override
   State<SunButton> createState() => _SunButtonState();
 }
@@ -357,8 +538,10 @@ class _SunButtonState extends State<SunButton> {
                 : LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: widget.secondary
-                        ? [const Color(0xFFB1E3E4), const Color(0xFF70BAC5)]
+                    colors: widget.deep
+                        ? [const Color(0xFF36A2B3), const Color(0xFF086B7E)]
+                        : widget.secondary
+                        ? [const Color(0xFFB1EBF1), const Color(0xFF56BDCE)]
                         : [const Color(0xFFFFD49A), sun],
                   ),
             color: disabled ? const Color(0xFFD3D9D9) : null,
@@ -366,7 +549,9 @@ class _SunButtonState extends State<SunButton> {
                 ? []
                 : [
                     BoxShadow(
-                      color: widget.secondary
+                      color: widget.deep
+                          ? const Color(0xFF024C5D)
+                          : widget.secondary
                           ? const Color(0xFF346B79)
                           : const Color(0xFFA95729),
                       offset: Offset(0, down ? 1 : 4),
@@ -375,7 +560,7 @@ class _SunButtonState extends State<SunButton> {
           ),
           child: FilledButton.icon(
             style: FilledButton.styleFrom(
-              minimumSize: Size(48, widget.large ? 76 : 56),
+              minimumSize: Size(48, widget.height ?? (widget.large ? 76 : 56)),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               textStyle: TextStyle(
                 fontFamily: 'Inter',
@@ -384,8 +569,8 @@ class _SunButtonState extends State<SunButton> {
               ),
               backgroundColor: Colors.transparent,
               disabledBackgroundColor: Colors.transparent,
-              foregroundColor: fjord,
-              disabledForegroundColor: const Color(0xFF405C66),
+              foregroundColor: widget.deep ? Colors.white : fjord,
+              disabledForegroundColor: const Color(0xFF397583),
             ),
             onPressed: widget.onPressed,
             icon: Icon(widget.icon),
