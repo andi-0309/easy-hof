@@ -1,0 +1,49 @@
+name: Publish requested release
+on:
+  push:
+    branches: [main]
+    paths: ['docs/releases/v*.md']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: publish-requested-release
+  cancel-in-progress: false
+jobs:
+  tag:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release version and notes
+        id: version
+        run: |
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          match = re.search(r'^version:\s*(\d+\.\d+\.\d+)(?:\+\d+)?\s*$', Path('pubspec.yaml').read_text(), re.MULTILINE)
+          if not match:
+              raise SystemExit('No semantic version in pubspec.yaml')
+          tag = 'v' + match.group(1)
+          notes = Path('docs/releases') / (tag + '.md')
+          if not notes.is_file() or not notes.read_text().strip():
+              raise SystemExit('Missing release notes for ' + tag)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('tag=' + tag + '\n')
+          PY
+      - name: Create immutable tag and start the tested release pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG already exists; leaving it unchanged."
+            exit 0
+          fi
+          gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$GITHUB_SHA"
+          # GITHUB_TOKEN tag pushes do not trigger another workflow.
+          # Explicit dispatch starts the existing checks, builds and release.
+          gh workflow run android.yml --repo "$GH_REPO" --ref "$RELEASE_TAG"

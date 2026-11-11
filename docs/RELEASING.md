@@ -131,3 +131,16 @@ highest published versions. For production signing, set `KEYSTORE_PATH`,
 
 Before a public release, validate installation through Google Play on a physical
 watch, heart-rate permissions, standalone cold sessions and delayed phone sync.
+
+### Veröffentlichung über Release-Notizen starten
+
+Für ein neues Release die Version in `pubspec.yaml` setzen und die passende Datei
+`docs/releases/vMAJOR.MINOR.PATCH.md` auf `main` hinzufügen. Der Workflow
+**Publish requested release** legt den noch fehlenden Tag an und startet den
+bestehenden Android-Workflow auf diesem Tag. Ein vorhandener Tag wird nicht
+verschoben. GitHub veröffentlicht die APKs und AABs erst nach erfolgreichen
+Prüfungen und Builds. Google Play erhält weiterhin ausschließlich Test-Entwürfe.
+
+Der Workflow lässt sich auf `main` auch manuell starten. Falls bereits ein Tag
+existiert und dessen Build wiederholt werden soll, stattdessen den
+Android-Workflow direkt auf diesem Tag starten.
