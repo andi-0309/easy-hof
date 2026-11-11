@@ -34,10 +34,10 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   bool voice = true;
   bool haptics = true;
   int rounds = 3, breaths = 30, pace = 6, tab = isWear ? 1 : 0;
-  int goal = 0;
+  int goal = 180;
   String coldType = 'shower';
-  double temperature = 15;
-  bool temperatureKnown = false;
+  double temperature = 5;
+  bool temperatureKnown = true;
   bool busy = false, loaded = false;
   String? error;
   Map<String, dynamic> data = {};
@@ -392,24 +392,25 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   );
 
   Future<void> startCold() async {
-    if (!await confirm(
-      t('Kältetraining', 'Cold training'),
-      t(
-            'Im Wasser normal weiteratmen — keine Atemhalteübungen. Eisbad nicht allein. Beende die Einheit bei Unwohlsein. Die Zielzeit ist optional, keine Empfehlung. Pulswerte können bei Kälte ungenau sein und sind kein Sicherheitssignal.',
-            'Breathe normally in water — no breath holds. Do not ice bathe alone. Stop if unwell. A target time is optional, not a recommendation. Heart rate can be inaccurate in cold conditions and is not a safety indicator.',
-          ) +
-          (isWear
-              ? t(
-                  '\n\nOptionaler Pulszugriff: Mit deiner Freigabe zeigt Easy Hof während dieser Sitzung deinen Puls an. Pulsverlauf, Durchschnitt, Minimum und Maximum werden auf der Uhr gespeichert und über Google Play-Dienste mit deinem gekoppelten Smartphone synchronisiert. Du kannst die Sensorberechtigung ablehnen; der Timer bleibt ohne Pulswerte nutzbar.',
-                  '\n\nOptional heart rate: With your permission, Easy Hof displays your heart rate during this session. Heart-rate trace, average, minimum and maximum are stored on the watch and synchronized with your paired phone through Google Play services. You can decline sensor permission and continue using the timer without heart-rate values.',
-                )
-              : ''),
-    )) {
+    if (!isWear &&
+        !await confirm(
+          t('Kältetraining', 'Cold training'),
+          t(
+                'Im Wasser normal weiteratmen — keine Atemhalteübungen. Eisbad nicht allein. Beende die Einheit bei Unwohlsein. Die Zielzeit ist optional, keine Empfehlung. Pulswerte können bei Kälte ungenau sein und sind kein Sicherheitssignal.',
+                'Breathe normally in water — no breath holds. Do not ice bathe alone. Stop if unwell. A target time is optional, not a recommendation. Heart rate can be inaccurate in cold conditions and is not a safety indicator.',
+              ) +
+              (isWear
+                  ? t(
+                      '\n\nOptionaler Pulszugriff: Mit deiner Freigabe zeigt Easy Hof während dieser Sitzung deinen Puls an. Pulsverlauf, Durchschnitt, Minimum und Maximum werden auf der Uhr gespeichert und über Google Play-Dienste mit deinem gekoppelten Smartphone synchronisiert. Du kannst die Sensorberechtigung ablehnen; der Timer bleibt ohne Pulswerte nutzbar.',
+                      '\n\nOptional heart rate: With your permission, Easy Hof displays your heart rate during this session. Heart-rate trace, average, minimum and maximum are stored on the watch and synchronized with your paired phone through Google Play services. You can decline sensor permission and continue using the timer without heart-rate values.',
+                    )
+                  : ''),
+        )) {
       return;
     }
-    await Device.call<bool>('requestNotifications');
     bool hr = false;
     if (isWear) hr = await Device.call<bool>('requestHeartRate') ?? false;
+    await Device.call<bool>('requestNotifications');
     await Device.call('startCold', {
       'kind': coldType,
       'temperature': temperatureKnown ? temperature : null,
@@ -466,7 +467,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           coldType = kind;
           goal = seconds;
           temperatureKnown = temp != null;
-          temperature = temp ?? 15;
+          temperature = temp ?? 5;
           await startCold();
         }),
         onStopCold: () => action(() async {
@@ -474,19 +475,17 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           await refresh();
         }),
         onStartPulse: () => action(() async {
-          if (!await confirm(
-            t('Puls beim Atmen', 'Breathing heart rate'),
-            t(
-              'Die Uhr misst deinen Puls für das Atemtraining am Telefon. Pulsverlauf und Zusammenfassung werden mit dem Telefon synchronisiert. Optional: Ohne Freigabe kannst du weiter trainieren.',
-              'Your watch measures heart rate for the breathing session on your phone. Trace and summary sync to your phone. Optional: you can train without permission.',
-            ),
-          )) {
-            return;
-          }
-          await Device.call<bool>('requestNotifications');
           final allowed = await Device.call<bool>('requestHeartRate') ?? false;
+          await Device.call<bool>('requestNotifications');
           if (allowed) {
             await Device.call('startBreathingPulse');
+          } else {
+            showError(
+              t(
+                'Pulszugriff nicht freigegeben.',
+                'Heart-rate access was not granted.',
+              ),
+            );
           }
           await refresh();
         }),
@@ -511,9 +510,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     return Scaffold(
       appBar: isWear
           ? null
-          : AppBar(
+          : NordicAppBar(
               title: const Text('Easy Hof'),
-              actionsPadding: const EdgeInsets.only(right: 24),
               actions: [
                 NordicIconButton(
                   tooltip: t('Einstellungen', 'Settings'),
@@ -525,7 +523,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
+            constraints: const BoxConstraints(maxWidth: nordicPageWidth),
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 isWear ? 18 : 24,
@@ -839,7 +837,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               ),
             ],
             selected: {coldType},
-            onSelectionChanged: (s) => setState(() => coldType = s.first),
+            onSelectionChanged: (s) => setState(() {
+              coldType = s.first;
+              goal = coldType == 'bath' ? 300 : 180;
+              temperature = 5;
+            }),
           ),
         space(),
         SwitchListTile(
@@ -852,11 +854,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         if (temperatureKnown)
           numberControl(
             '°C',
-            (temperature * 2).round(),
-            -4,
-            80,
-            (v) => setState(() => temperature = v / 2),
-            display: '${temperature.toStringAsFixed(1)} °C',
+            temperature.round(),
+            -2,
+            40,
+            (v) => setState(() => temperature = v.toDouble()),
+            display: '${temperature.toStringAsFixed(0)} °C',
           ),
         numberControl(
           t('Optionale Zielzeit', 'Optional target time'),
@@ -1081,7 +1083,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.3.0'),
+      const Text('Version 1.3.1'),
     ]),
   ];
 

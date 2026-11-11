@@ -246,7 +246,7 @@ class MountainPainter extends CustomPainter {
     final atmosphere = Rect.fromLTWH(0, -s.height * .4, w, s.height * 1.7);
     canvas.saveLayer(atmosphere, Paint());
     final sw = s.width, sh = s.height;
-    final sunCenter = Offset(sw * .77 + breath * 2, sh * .22 - breath * 6);
+    final sunCenter = Offset(sw * .77 + breath * 6, sh * .22 - breath * 18);
     canvas.drawCircle(
       sunCenter,
       sw * .12,
@@ -258,7 +258,7 @@ class MountainPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: sunCenter, radius: sw * .12)),
     );
     canvas.save();
-    canvas.translate(-breath * 1.5, -breath * 2);
+    canvas.translate(-breath * 4.5, -breath * 6);
     final distant = Path()
       ..moveTo(0, sh * .63)
       ..lineTo(sw * .15, sh * .35)
@@ -276,7 +276,7 @@ class MountainPainter extends CustomPainter {
     );
     canvas.restore();
     canvas.save();
-    canvas.translate(breath * 2, -breath * 4);
+    canvas.translate(breath * 6, -breath * 12);
     final peaks = [
       const [
         Offset(-.12, .65),
@@ -379,7 +379,7 @@ class MountainPainter extends CustomPainter {
     canvas.restore();
     for (var i = 0; i < 3; i++) {
       canvas.save();
-      canvas.translate((i - 1) * breath * 1.5, -breath * (i + 1));
+      canvas.translate((i - 1) * breath * 4.5, -breath * (i + 1) * 3);
       final y = sh * (.49 + i * .15);
       final hills = Path()
         ..moveTo(-sw * .08, sh)
@@ -746,8 +746,8 @@ class NordicIconButton extends StatelessWidget {
         : icon;
     final button = NordicButton(
       onPressed: onPressed,
-      height: size,
-      minWidth: size,
+      height: size - 2,
+      minWidth: size - 2,
       radius: 16,
       padding: padding ?? EdgeInsets.all(small ? 8 : 10),
       child: symbol,
@@ -860,50 +860,108 @@ class NordicNavigationBar extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
   final List<NavigationDestination> destinations;
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Colors.transparent,
-    child: SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var i = 0; i < destinations.length; i++)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Semantics(
-                    selected: i == selectedIndex,
-                    child: NordicButton(
-                      onPressed: () => onDestinationSelected(i),
-                      tone: i == selectedIndex
-                          ? NordicTone.petrol
-                          : NordicTone.ice,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 9,
-                      ),
-                      height: 60,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          destinations[i].icon,
-                          const SizedBox(height: 4),
-                          Text(
-                            destinations[i].label,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12),
+  Widget build(BuildContext context) => Center(
+    heightFactor: 1,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: nordicPageWidth),
+      child: ColoredBox(
+        color: Colors.transparent,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < destinations.length; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Semantics(
+                        selected: i == selectedIndex,
+                        child: NordicButton(
+                          onPressed: () => onDestinationSelected(i),
+                          tone: i == selectedIndex
+                              ? NordicTone.petrol
+                              : NordicTone.ice,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 9,
                           ),
-                        ],
+                          height: 60,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              destinations[i].icon,
+                              const SizedBox(height: 4),
+                              Text(
+                                destinations[i].label,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     ),
   );
+}
+
+/// Shared phone grid for headers, route content and fixed actions.
+const nordicPageWidth = 560.0;
+const nordicPageInset = 24.0;
+
+class NordicAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const NordicAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.automaticallyImplyLeading = true,
+    this.toolbarHeight = 56,
+  });
+  final Widget title;
+  final List<Widget>? actions;
+  final bool automaticallyImplyLeading;
+  final double toolbarHeight;
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
+  @override
+  Widget build(BuildContext context) {
+    final back = automaticallyImplyLeading && Navigator.canPop(context);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: nordicPageWidth),
+        child: AppBar(
+          toolbarHeight: toolbarHeight,
+          automaticallyImplyLeading: false,
+          titleSpacing: back ? 12 : nordicPageInset,
+          title: title,
+          leadingWidth: back ? 72 : null,
+          leading: back
+              ? Padding(
+                  padding: const EdgeInsets.only(left: nordicPageInset),
+                  child: Center(
+                    child: NordicIconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).backButtonTooltip,
+                      onPressed: () => Navigator.maybePop(context),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                    ),
+                  ),
+                )
+              : null,
+          actionsPadding: const EdgeInsets.only(right: nordicPageInset),
+          actions: actions,
+        ),
+      ),
+    );
+  }
 }

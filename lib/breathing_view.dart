@@ -108,30 +108,109 @@ class BreathingPage extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        bottomNavigationBar: primary
-            ? SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-                  child: SunButton(
-                    large: true,
-                    icon: Icons.air_rounded,
-                    label: b.phase == BreathPhase.retention
-                        ? t('Ich atme wieder', 'I am breathing again')
-                        : t('Jetzt ausatmen', 'Exhale now'),
-                    onPressed: b.paused
-                        ? null
-                        : b.phase == BreathPhase.retention
-                        ? onBreatheAgain
-                        : onExhale,
-                  ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: nordicPageWidth),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (primary) ...[
+                      SunButton(
+                        large: true,
+                        height: 80,
+                        icon: Icons.air_rounded,
+                        label: b.phase == BreathPhase.retention
+                            ? t('Ich atme wieder', 'I am breathing again')
+                            : t('Jetzt ausatmen', 'Exhale now'),
+                        onPressed: b.paused
+                            ? null
+                            : b.phase == BreathPhase.retention
+                            ? onBreatheAgain
+                            : onExhale,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                    if (pendingSave)
+                      SunButton(
+                        label: t('Erneut speichern', 'Retry save'),
+                        icon: Icons.refresh_rounded,
+                        onPressed: onRetry,
+                      )
+                    else
+                      LayoutBuilder(
+                        builder: (context, box) {
+                          final narrow =
+                              box.maxWidth < 300 ||
+                              MediaQuery.textScalerOf(context).scale(16) > 24;
+                          final controls = [
+                            NordicButton.icon(
+                              height: 48,
+                              fontSize: 16,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 10,
+                              ),
+                              icon: Icon(
+                                b.paused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                size: 20,
+                              ),
+                              label: Text(
+                                b.paused
+                                    ? t('Fortsetzen', 'Resume')
+                                    : t('Pause', 'Pause'),
+                              ),
+                              onPressed: onTogglePause,
+                            ),
+                            NordicButton.icon(
+                              height: 48,
+                              fontSize: 16,
+                              tone: NordicTone.petrol,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 10,
+                              ),
+                              icon: const Icon(Icons.stop_rounded, size: 20),
+                              label: Text(t('Beenden', 'Finish')),
+                              onPressed: onFinish,
+                            ),
+                          ];
+                          return narrow
+                              ? Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    controls[0],
+                                    const SizedBox(height: 8),
+                                    controls[1],
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    Expanded(child: controls[0]),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: controls[1]),
+                                  ],
+                                );
+                        },
+                      ),
+                  ],
                 ),
-              )
-            : null,
+              ),
+            ),
+          ),
+        ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, box) {
-              final width = math.min(box.maxWidth, 560.0);
+              final width = math.min(box.maxWidth, nordicPageWidth);
               final counterSize = (width * .25).clamp(64.0, 112.0);
               return SingleChildScrollView(
                 child: ConstrainedBox(
@@ -157,8 +236,8 @@ class BreathingPage extends StatelessWidget {
                                             )
                                           : '♥ ${pulse['bpm']} bpm')
                                     : t(
-                                        'Puls: Easy Hof auf der Uhr öffnen und bestätigen',
-                                        'Heart rate: open Easy Hof on your watch and confirm',
+                                        'Für Puls: Atemtraining auf der Uhr starten',
+                                        'For heart rate: start breathing on your watch',
                                       ),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -249,7 +328,7 @@ class BreathingPage extends StatelessWidget {
                                       : t('Ton einschalten', 'Enable audio'),
                                   onPressed: onToggleVoice,
                                   iconSize: 26,
-                                  padding: const EdgeInsets.all(13),
+                                  padding: const EdgeInsets.all(10),
                                   icon: Icon(
                                     voice
                                         ? Icons.volume_up_rounded
@@ -267,7 +346,7 @@ class BreathingPage extends StatelessWidget {
                               ),
                             Semantics(
                               liveRegion: true,
-                              child: Text(
+                              child: MorphText(
                                 phase,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -279,7 +358,7 @@ class BreathingPage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            Text(
+                            MorphText(
                               subtitle,
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -294,7 +373,7 @@ class BreathingPage extends StatelessWidget {
                               height: counterSize * 1.22,
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
-                                child: Text(
+                                child: MorphText(
                                   count,
                                   key: const Key('breathing-counter'),
                                   style: TextStyle(
@@ -307,7 +386,7 @@ class BreathingPage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            Text(
+                            MorphText(
                               label,
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -316,42 +395,6 @@ class BreathingPage extends StatelessWidget {
                                 color: colors.onSurfaceVariant,
                               ),
                             ),
-                            // Leave the scenic background unobstructed between counter and controls.
-                            SizedBox(
-                              height: primary
-                                  ? 36
-                                  : math.max(100, box.maxHeight * .15),
-                            ),
-                            if (pendingSave)
-                              SunButton(
-                                large: true,
-                                label: t('Erneut speichern', 'Retry save'),
-                                icon: Icons.refresh_rounded,
-                                onPressed: onRetry,
-                              )
-                            else ...[
-                              SunButton(
-                                large: true,
-                                height: 64,
-                                secondary: true,
-                                label: b.paused
-                                    ? t('Fortsetzen', 'Resume')
-                                    : t('Pause', 'Pause'),
-                                icon: b.paused
-                                    ? Icons.play_arrow_rounded
-                                    : Icons.pause_rounded,
-                                onPressed: onTogglePause,
-                              ),
-                              const SizedBox(height: 18),
-                              SunButton(
-                                large: true,
-                                height: 64,
-                                deep: true,
-                                label: t('Beenden', 'Finish'),
-                                icon: Icons.stop_rounded,
-                                onPressed: onFinish,
-                              ),
-                            ],
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -362,6 +405,55 @@ class BreathingPage extends StatelessWidget {
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Soft shape/size interpolation between changing labels and timer values.
+class MorphText extends StatelessWidget {
+  const MorphText(
+    this.text, {
+    super.key,
+    this.style,
+    this.textAlign = TextAlign.center,
+  });
+  final String text;
+  final TextStyle? style;
+  final TextAlign textAlign;
+  @override
+  Widget build(BuildContext context) {
+    final duration = Duration(
+      milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 320,
+    );
+    return AnimatedSize(
+      duration: duration,
+      curve: Curves.easeInOutCubic,
+      alignment: Alignment.center,
+      child: AnimatedSwitcher(
+        duration: duration,
+        reverseDuration: duration,
+        switchInCurve: Curves.easeInOutCubic,
+        switchOutCurve: Curves.easeInOutCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: .94, end: 1).animate(animation),
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, .045),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+        ),
+        child: Text(
+          text,
+          key: ValueKey(text),
+          textAlign: textAlign,
+          style: style,
         ),
       ),
     );

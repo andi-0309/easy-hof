@@ -108,7 +108,7 @@ void main() {
         if (kind == 'bath') {
           expect(saved['temperature'], 7.5);
         } else {
-          expect(saved.containsKey('temperature'), false);
+          expect(saved['temperature'], 5.0);
         }
         expect(find.text('Open'), findsOneWidget);
         expect(tester.takeException(), isNull);

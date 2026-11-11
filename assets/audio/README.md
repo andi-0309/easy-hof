@@ -52,3 +52,8 @@ the app. Checksums and measured loudness refer to the decoded MP3 bytes.
 
 The generation script sets `ORT_DISABLE_TELEMETRY=1` before importing ONNX and
 also calls its telemetry-disable API before creating synthesis sessions.
+
+From v1.3.1 the native cue player applies 160 ms attack/release envelopes and a
+bounded crossfade between adjacent cues. Completed clips release independently;
+pause, mute and leaving the screen immediately release both overlapping players.
+The player continues mixing without acquiring or abandoning music audio focus.

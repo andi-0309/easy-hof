@@ -17,6 +17,8 @@ There is no Easy Hof user account. Training functions, bundled audio and fonts w
 
 3. Optional heart rate on the watch
 
+From version 1.3.1 optional sensor access is requested when starting training on the watch. It can wait up to three minutes for the phone breathing exercise without reading the heart-rate sensor. Measurement begins only with the phone exercise.
+
 With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start, or after you confirm on the watch for a breathing session on your paired phone. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started training session.
 
 Stored session statistics comprise minimum, maximum, and the count and sum of accepted measurements used to calculate the average. From version 1.2.0, new recordings also store a heart-rate trace with at most one sample every five seconds. Each sample contains elapsed time from session start and the heart-rate value. Storage is limited to 1,441 samples per session. Missing readings are not filled in. Older sessions and manual entries do not have reconstructed heart-rate traces. Values support your personal training overview, not medical diagnosis, treatment or alerts.

@@ -406,7 +406,7 @@ class _TrainingDayState extends State<TrainingDay> {
   Widget build(BuildContext context) {
     final compact = MediaQuery.sizeOf(context).width < 260;
     return Scaffold(
-      appBar: AppBar(
+      appBar: NordicAppBar(
         toolbarHeight: compact ? 44 : 56,
         title: Text(
           MaterialLocalizations.of(context).formatShortDate(widget.date),
@@ -416,7 +416,7 @@ class _TrainingDayState extends State<TrainingDay> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
+            constraints: const BoxConstraints(maxWidth: nordicPageWidth),
             child: ListView(
               padding: EdgeInsets.all(compact ? 16 : 24),
               children: [

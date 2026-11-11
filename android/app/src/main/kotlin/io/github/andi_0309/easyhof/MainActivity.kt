@@ -13,9 +13,12 @@ import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.view.MotionEvent
+import android.view.ViewConfiguration
 import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
+    private var rotaryChannel: MethodChannel? = null
     private val cueAudio = CueAudioPlayer()
     private val cachedClips = mutableMapOf<String, File>()
     private var documentResult: MethodChannel.Result? = null
@@ -23,6 +26,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         volumeControlStream = AudioManager.STREAM_MUSIC
+        rotaryChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "io.github.andi_0309.easyhof/rotary")
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "io.github.andi_0309.easyhof/device").setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
@@ -97,7 +101,6 @@ class MainActivity : FlutterActivity() {
     private fun playCue(cue: String, language: String, seconds: Int) {
         require(language in setOf("de", "en")) { "Unknown audio language" }
         require(cue in setOf("welcome", "countdown", "inhale", "exhale", "retention", "recovery", "rest", "done", "final_exhale")) { "Unknown audio cue" }
-        stopAudio()
         require(seconds in 2..4) { "Invalid breath duration" }
         val key = if (cue == "inhale" || cue == "exhale") "breath/$cue-$seconds" else "$language/$cue"
         val file = cachedClips.getOrPut(key) {
@@ -111,6 +114,14 @@ class MainActivity : FlutterActivity() {
             }
         }
         cueAudio.play(file, spoken = cue != "inhale" && cue != "exhale")
+    }
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        val delta = RotaryInput.delta(event, ViewConfiguration.get(this).scaledVerticalScrollFactor, resources.displayMetrics.density)
+        if (delta != null && BreathingPulse.watch(this)) {
+            rotaryChannel?.invokeMethod("scroll", delta)
+            return true
+        }
+        return super.dispatchGenericMotionEvent(event)
     }
     private fun stopAudio() = cueAudio.stop()
     override fun onStop() { stopAudio(); super.onStop() }
@@ -157,6 +168,7 @@ class MainActivity : FlutterActivity() {
     }
     override fun onDestroy() {
         stopAudio()
+        rotaryChannel = null
         permissionResult?.success(false); permissionResult = null
         documentResult?.success(false); documentResult = null
         super.onDestroy()

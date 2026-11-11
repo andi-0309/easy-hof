@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'breathing.dart';
 import 'nordic.dart';
+import 'wear_scroll.dart';
+import 'water_lock.dart';
 
 /// A circular interaction area on every watch. Rectangular surplus remains scenery.
 class WearCompanion extends StatefulWidget {
@@ -28,8 +30,8 @@ class WearCompanion extends StatefulWidget {
 
 class _WearCompanionState extends State<WearCompanion> {
   String page = 'home', kind = 'shower';
-  int seconds = 0;
-  double? temperature;
+  int seconds = 180;
+  double? temperature = 5;
   @override
   void didUpdateWidget(covariant WearCompanion oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -109,14 +111,7 @@ class _WearCompanionState extends State<WearCompanion> {
     builder: (context, box) {
       final diameter = math.min(box.maxWidth, box.maxHeight);
       final active = widget.data['active'] as Map?;
-      final request = widget.data['breathingRequest'] as Map?;
       final pulse = widget.data['watchPulse'] as Map?;
-      final requestFresh =
-          request != null &&
-          request['ended'] != true &&
-          DateTime.now().millisecondsSinceEpoch -
-                  (request['sentAt'] as num? ?? 0) <
-              30000;
       final children = <Widget>[];
       if (active != null) {
         children.addAll([
@@ -150,10 +145,14 @@ class _WearCompanionState extends State<WearCompanion> {
             style: const TextStyle(fontSize: 13, height: 1.1),
           ),
           const SizedBox(height: 9),
-          button(
-            t('Beenden', 'Finish'),
-            widget.onStopCold,
-            tone: NordicTone.sun,
+          Builder(
+            builder: (context) => WearWaterLock.lockedOf(context)
+                ? const SizedBox(height: 48)
+                : button(
+                    t('Beenden', 'Finish'),
+                    widget.onStopCold,
+                    tone: NordicTone.sun,
+                  ),
           ),
           gap(),
           if (active['temperature'] != null)
@@ -161,7 +160,7 @@ class _WearCompanionState extends State<WearCompanion> {
         ]);
       } else if (pulse != null) {
         children.addAll([
-          heading(t('Puls beim Atmen', 'Breathing pulse')),
+          heading(t('Atmen', 'Breathe')),
           Text(
             pulse['bpm'] == null ? '♥ —' : '♥ ${pulse['bpm']}',
             textAlign: TextAlign.center,
@@ -169,12 +168,14 @@ class _WearCompanionState extends State<WearCompanion> {
           ),
           gap(),
           Text(
-            t('Training am Telefon', 'Training on phone'),
+            pulse['waiting'] == true
+                ? t('Bereit', 'Ready')
+                : t('Training am Telefon', 'Training on phone'),
             textAlign: TextAlign.center,
           ),
           gap(),
           button(
-            t('Puls beenden', 'Stop pulse'),
+            t('Beenden', 'Finish'),
             widget.onStopPulse,
             tone: NordicTone.sun,
           ),
@@ -207,15 +208,15 @@ class _WearCompanionState extends State<WearCompanion> {
             gap(),
             button(
               t('Einstellen', 'Set temperature'),
-              () => setState(() => temperature = kind == 'bath' ? 8 : 15),
+              () => setState(() => temperature = 5),
             ),
           ] else ...[
             stepper(
-              '${temperature!.toStringAsFixed(1)} °C',
+              '${temperature!.toStringAsFixed(0)} °C',
               () =>
-                  setState(() => temperature = math.max(-2, temperature! - .5)),
+                  setState(() => temperature = math.max(-2, temperature! - 1)),
               () =>
-                  setState(() => temperature = math.min(40, temperature! + .5)),
+                  setState(() => temperature = math.min(40, temperature! + 1)),
             ),
             button(
               t('Starten', 'Start'),
@@ -226,56 +227,9 @@ class _WearCompanionState extends State<WearCompanion> {
           gap(),
           back(),
         ]);
-      } else if (page == 'breathing') {
-        children.addAll([
-          heading(t('Atmen', 'Breathe')),
-          if (requestFresh) ...[
-            button(
-              t('Puls starten', 'Start pulse'),
-              widget.onStartPulse,
-              tone: NordicTone.sun,
-            ),
-            gap(),
-            Text(
-              t(
-                'Für die laufende Einheit am Telefon.',
-                'For the current phone session.',
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ] else
-            Text(
-              t(
-                'Starte das Atemtraining in Easy Hof auf dem Telefon. Bestätige danach hier den Pulszugriff.',
-                'Start breathing in Easy Hof on your phone. Then confirm heart-rate access here.',
-              ),
-              textAlign: TextAlign.center,
-            ),
-          gap(),
-          back(),
-        ]);
       } else {
         children.addAll([
           heading('Easy Hof'),
-          if (widget.data['phoneAppAvailable'] == false) ...[
-            Text(
-              t(
-                'Installiere Easy Hof auch auf deinem Telefon.',
-                'Install Easy Hof on your phone too.',
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12),
-            ),
-            gap(),
-          ],
-          if (requestFresh) ...[
-            button(
-              t('Puls starten', 'Start pulse'),
-              widget.onStartPulse,
-              tone: NordicTone.sun,
-            ),
-            gap(),
-          ],
           Row(
             children: [
               Expanded(
@@ -283,8 +237,8 @@ class _WearCompanionState extends State<WearCompanion> {
                   t('Dusche', 'Shower'),
                   () => setState(() {
                     kind = 'shower';
-                    seconds = 0;
-                    temperature = null;
+                    seconds = 180;
+                    temperature = 5;
                     page = 'time';
                   }),
                   tone: NordicTone.sun,
@@ -297,8 +251,8 @@ class _WearCompanionState extends State<WearCompanion> {
                   t('Eisbad', 'Ice bath'),
                   () => setState(() {
                     kind = 'bath';
-                    seconds = 0;
-                    temperature = null;
+                    seconds = 300;
+                    temperature = 5;
                     page = 'time';
                   }),
                   compact: true,
@@ -307,19 +261,8 @@ class _WearCompanionState extends State<WearCompanion> {
             ],
           ),
           gap(),
-          button(
-            t('Atmen · Puls', 'Breathe · pulse'),
-            () => setState(() => page = 'breathing'),
-          ),
+          button(t('Atmen', 'Breathe'), widget.onStartPulse),
           gap(),
-          Text(
-            t(
-              'Verlauf & Einstellungen am Telefon',
-              'History & settings on phone',
-            ),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
-          ),
         ]);
       }
       if (widget.error != null) {
@@ -329,23 +272,27 @@ class _WearCompanionState extends State<WearCompanion> {
         child: ClipOval(
           child: SizedBox.square(
             dimension: diameter,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              removeBottom: true,
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: ListView(
-                  key: ValueKey(
-                    '${active != null}-${pulse != null}-$page-$requestFresh',
+            child: WearWaterLock(
+              language: widget.language,
+              activeId: active == null
+                  ? null
+                  : (active['id'] ?? active['kind']).toString(),
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                removeBottom: true,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: WearScroll(
+                    key: ValueKey('${active != null}-${pulse != null}-$page'),
+                    padding: EdgeInsets.fromLTRB(
+                      diameter * .17,
+                      diameter * (active != null ? .14 : .19),
+                      diameter * .17,
+                      diameter * .23,
+                    ),
+                    children: children,
                   ),
-                  padding: EdgeInsets.fromLTRB(
-                    diameter * .17,
-                    diameter * (active != null ? .14 : .19),
-                    diameter * .17,
-                    diameter * .23,
-                  ),
-                  children: children,
                 ),
               ),
             ),
@@ -418,11 +365,13 @@ class WearConfirmation extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Expanded(
-                      child: SingleChildScrollView(
-                        child: Text(
-                          message,
-                          style: const TextStyle(fontSize: 12, height: 1.35),
-                        ),
+                      child: WearScroll(
+                        children: [
+                          Text(
+                            message,
+                            style: const TextStyle(fontSize: 12, height: 1.35),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 6),

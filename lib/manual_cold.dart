@@ -23,7 +23,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
   final form = GlobalKey<FormState>();
   final minutes = TextEditingController(text: '2');
   final seconds = TextEditingController(text: '0');
-  final temperature = TextEditingController();
+  final temperature = TextEditingController(text: '5');
   DateTime finished = DateTime.now();
   late String kind;
   final id =
@@ -169,7 +169,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
     return PopScope(
       canPop: !saving,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: NordicAppBar(
           title: Text(
             t('Nachtragen', 'Add entry'),
             maxLines: 1,
@@ -180,7 +180,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
+              constraints: const BoxConstraints(maxWidth: nordicPageWidth),
               child: Form(
                 key: form,
                 child: ListView(

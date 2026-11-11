@@ -9,8 +9,20 @@ import 'nordic_release_test.dart' show screenshot;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  Future<void> rotate(WidgetTester tester, double delta) async {
+    tester.binding.channelBuffers.push(
+      'io.github.andi_0309.easyhof/rotary',
+      const StandardMethodCodec().encodeMethodCall(MethodCall('scroll', delta)),
+      (_) {},
+    );
+    await tester.pumpAndSettle();
+  }
+
   Future<void> fonts(WidgetTester tester) async {
     await tester.runAsync(() async {
+      await (FontLoader(
+        'MaterialIcons',
+      )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
       for (final family in ['Inter', 'Manrope']) {
         await (FontLoader(
           family,
@@ -70,35 +82,36 @@ void main() {
     await tester.pumpWidget(RepaintBoundary(key: key, child: const EasyHof()));
     await tester.pumpAndSettle();
     expect(find.text('Zielzeit'), findsNothing);
-    expect(find.text('Atmen · Puls').hitTestable(), findsOneWidget);
+    expect(find.text('Atmen').hitTestable(), findsOneWidget);
     expect(find.byIcon(Icons.settings), findsNothing);
     expect(find.byIcon(Icons.history), findsNothing);
     await screenshot(tester, key, 'wear-shortcuts');
     await tester.tap(find.text('Dusche'));
     await tester.pumpAndSettle();
     expect(find.text('Zielzeit'), findsOneWidget);
+    expect(find.text('3:00'), findsOneWidget);
     await tester.tap(find.text('+'));
     await tester.pumpAndSettle();
-    expect(find.text('0:30'), findsOneWidget);
+    expect(find.text('3:30'), findsOneWidget);
     await screenshot(tester, key, 'wear-time');
     await tester.tap(find.text('Weiter'));
     await tester.pumpAndSettle();
     expect(find.text('Temperatur'), findsOneWidget);
-    await tester.tap(find.text('Einstellen'));
+    expect(find.text('5 °C'), findsOneWidget);
+    await tester.tap(find.text('+'));
     await tester.pumpAndSettle();
-    expect(find.text('15.0 °C'), findsOneWidget);
+    expect(find.text('6 °C'), findsOneWidget);
     await screenshot(tester, key, 'wear-temperature');
     await tester.tap(find.text('Starten'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Verstanden'));
-    await tester.pumpAndSettle();
     final start = calls.singleWhere((c) => c.method == 'startCold');
     expect((start.arguments as Map)['kind'], 'shower');
-    expect((start.arguments as Map)['goalSeconds'], 30);
-    expect((start.arguments as Map)['temperature'], 15.0);
+    expect((start.arguments as Map)['goalSeconds'], 210);
+    expect((start.arguments as Map)['temperature'], 6.0);
+    await rotate(tester, 240);
     await tester.tap(find.text('Beenden'));
     await tester.pumpAndSettle();
-    expect(find.text('Atmen · Puls').hitTestable(), findsOneWidget);
+    expect(find.text('Atmen').hitTestable(), findsOneWidget);
     expect(find.text('Zielzeit'), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
@@ -110,6 +123,10 @@ void main() {
     await tester.pumpWidget(RepaintBoundary(key: key, child: const EasyHof()));
     await tester.pumpAndSettle();
     expect(find.text('1:05'), findsOneWidget);
+    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(find.text('Beenden').hitTestable(), findsNothing);
+    await screenshot(tester, key, 'wear-water-lock');
+    await rotate(tester, 240);
     expect(find.text('Beenden').hitTestable(), findsOneWidget);
     await screenshot(tester, key, 'wear-active');
     expect(tester.takeException(), isNull);
@@ -144,11 +161,10 @@ void main() {
     setup(tester, request: true, calls: calls);
     await tester.pumpWidget(const EasyHof());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Puls starten'));
+    expect(find.text('Puls starten'), findsNothing);
+    await tester.tap(find.text('Atmen'));
     await tester.pumpAndSettle();
-    expect(calls.where((c) => c.method == 'requestHeartRate'), isEmpty);
-    await tester.tap(find.text('Verstanden'));
-    await tester.pumpAndSettle();
+    expect(find.text('Verstanden'), findsNothing);
     expect(calls.any((c) => c.method == 'requestHeartRate'), isTrue);
     expect(calls.any((c) => c.method == 'startBreathingPulse'), isTrue);
     expect(tester.takeException(), isNull);

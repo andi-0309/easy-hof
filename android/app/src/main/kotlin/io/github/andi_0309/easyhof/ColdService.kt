@@ -53,7 +53,7 @@ class ColdService : Service(), SensorEventListener {
         record = JSONObject().put("id", UUID.randomUUID().toString()).put("kind", intent?.getStringExtra("kind") ?: "shower")
             .put("startedAt", Instant.now().toString()).put("durationMs", 0).put("goalSeconds", intent?.getIntExtra("goalSeconds", 0) ?: 0)
             .put("goalReached", false).put("hrCount", 0).put("hrSum", 0)
-        if (intent?.hasExtra("temperature") == true) record.put("temperature", intent.getDoubleExtra("temperature", 15.0))
+        if (intent?.hasExtra("temperature") == true) record.put("temperature", intent.getDoubleExtra("temperature", 5.0))
         if (Build.VERSION.SDK_INT >= 34) startForeground(41, notification(), if (hasHr) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         else startForeground(41, notification())
         instance = this
@@ -116,7 +116,7 @@ class ColdService : Service(), SensorEventListener {
         val settings = SessionStore.setting(this, null)
         if (settings.isNotBlank() && !JSONObject(settings).optBoolean("haptics", true)) return
         val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
-        vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 250, 150, 250), -1))
+        vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 600, 180, 600, 180, 900), intArrayOf(0, 255, 0, 255, 0, 255), -1))
     }
     override fun onDestroy() {
         handler.removeCallbacks(beat); sensors.unregisterListener(this)

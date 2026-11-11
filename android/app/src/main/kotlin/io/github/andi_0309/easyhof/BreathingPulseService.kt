@@ -16,14 +16,16 @@ class BreathingPulseService : Service(), SensorEventListener {
     private lateinit var sensors: SensorManager
     private lateinit var record: JSONObject
     private lateinit var request: JSONObject
+    private var armedAt = 0L
     private var receivedAt = 0L
     private var sampleAt = 0L
     private var bpm: Int? = null
     private var wake: PowerManager.WakeLock? = null
     private val beat = object : Runnable {
         override fun run() {
-            if (!::record.isInitialized) return
-            if (SystemClock.elapsedRealtime() - receivedAt > 90000) { finish(); return }
+            val now = SystemClock.elapsedRealtime()
+            if ((!::record.isInitialized && now - armedAt > 180000) ||
+                (::record.isInitialized && now - receivedAt > 90000)) { finish(); return }
             publish()
             handler.postDelayed(this, 5000)
         }
@@ -34,33 +36,38 @@ class BreathingPulseService : Service(), SensorEventListener {
         if (instance != null) return START_NOT_STICKY
         val pending = BreathingPulse.request(this)
         val permission = if (Build.VERSION.SDK_INT >= 36) "android.permission.health.READ_HEART_RATE" else Manifest.permission.BODY_SENSORS
-        if (!BreathingPulse.watch(this) || ColdService.instance != null || pending == null || pending.optBoolean("ended") ||
-            System.currentTimeMillis() - pending.optLong("sentAt") !in 0..30000 || checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+        if (!BreathingPulse.watch(this) || ColdService.instance != null || checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
             stopSelf(); return START_NOT_STICKY
         }
-        request = pending; receivedAt = SystemClock.elapsedRealtime()
-        record = JSONObject().put("id", pending.getString("id")).put("durationMs", pending.optLong("elapsedMs"))
-            .put("hrCount", 0).put("hrSum", 0)
+        armedAt = SystemClock.elapsedRealtime()
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("breathing-pulse", "Easy Hof · Puls", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 3, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val notification = Notification.Builder(this, "breathing-pulse").setSmallIcon(R.drawable.ic_stat_cold)
-            .setContentTitle(if (pending.optString("language") == "de") "Puls beim Atemtraining" else "Breathing heart rate")
+            .setContentTitle(if (JSONObject(SessionStore.setting(this).ifBlank { "{}" }).optString("language") == "de") "Atemtraining auf der Uhr" else "Watch breathing training")
             .setContentIntent(open).setOngoing(true).build()
         if (Build.VERSION.SDK_INT >= 34) startForeground(42, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         else startForeground(42, notification)
         instance = this
         wake = (getSystemService(POWER_SERVICE) as PowerManager).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EasyHof:BreathingPulse")
             .apply { acquire(7200000L + 10000) }
-        val sensor = sensors.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-        if (sensor != null) sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        if (pending != null && !pending.optBoolean("ended") && System.currentTimeMillis() - pending.optLong("sentAt") in 0..30000) update(pending)
         handler.post(beat)
         return START_NOT_STICKY
     }
     @Synchronized fun update(next: JSONObject) {
-        if (!::request.isInitialized || next.optString("id") != request.optString("id")) {
-            finish(); return
+        if (!BreathingPulse.validRequest(next)) return
+        if (!::record.isInitialized) {
+            if (next.optBoolean("ended") || System.currentTimeMillis() - next.optLong("sentAt") !in 0..30000) return
+            request = next
+            receivedAt = SystemClock.elapsedRealtime()
+            record = JSONObject().put("id", next.getString("id")).put("durationMs", next.optLong("elapsedMs"))
+                .put("hrCount", 0).put("hrSum", 0)
+            val sensor = sensors.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+            if (sensor != null) sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+            return
         }
+        if (next.optString("id") != request.optString("id")) { finish(); return }
         if (next.optLong("sentAt") < request.optLong("sentAt")) return
         request = next
         receivedAt = SystemClock.elapsedRealtime()
@@ -82,7 +89,7 @@ class BreathingPulseService : Service(), SensorEventListener {
         record.put("hrMin", minOf(record.optInt("hrMin", rate), rate)).put("hrMax", maxOf(record.optInt("hrMax", rate), rate))
     }
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { if (accuracy <= 0) bpm = null }
-    fun snapshot(): JSONObject = JSONObject(record.toString()).put("sentAt", System.currentTimeMillis())
+    fun snapshot(): JSONObject = (if (::record.isInitialized) JSONObject(record.toString()) else JSONObject().put("waiting", true)).put("sentAt", System.currentTimeMillis())
         .put("bpm", if (SystemClock.elapsedRealtime() - sampleAt < 15000) bpm else JSONObject.NULL)
     private fun publish() { if (::record.isInitialized) BreathingPulse.publish(this, snapshot()) }
     fun finish() {

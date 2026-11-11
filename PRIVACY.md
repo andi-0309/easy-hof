@@ -19,6 +19,8 @@ Es gibt kein Easy-Hof-Benutzerkonto. Die Trainingsfunktionen und eingebundenen A
 
 Nach deiner Freigabe liest die Wear-OS-App während eines von dir aktiv gestarteten Kältetrainings oder nach deiner Bestätigung auf der Uhr für ein Atemtraining am gekoppelten Telefon den Herzfrequenzsensor der Uhr aus. Der aktuelle Puls wird während der Sitzung angezeigt. Ein Vordergrunddienst hält das laufende Training aufrecht, auch wenn du die App-Ansicht verlässt. Die Sensorabfrage endet mit der Sitzung oder dem Ende des Trainingsdienstes. Es findet keine fortlaufende Pulserfassung außerhalb eines gestarteten Trainings statt.
 
+Ab Version 1.3.1 wird die optionale Sensorfreigabe beim Trainingsstart auf der Uhr angefragt. Startest du dort Atmen vor der Telefonübung, bleibt die Uhr höchstens drei Minuten bereit; in dieser Wartezeit wird der Pulssensor nicht abgefragt. Die Messung beginnt erst mit der Atemeinheit am Telefon.
+
 Gespeichert werden statistische Sitzungswerte: Minimum, Maximum sowie Anzahl und Summe der berücksichtigten Messwerte zur Berechnung des Durchschnitts. Ab Version 1.2.0 wird bei neuen Aufzeichnungen zusätzlich ein Pulsverlauf mit höchstens einem Messpunkt je fünf Sekunden gespeichert. Jeder Messpunkt enthält die seit Sitzungsbeginn verstrichene Zeit und den Pulswert. Maximal 1.441 Punkte pro Sitzung halten Speicherung und Geräteabgleich begrenzt. Fehlende Messungen werden nicht ergänzt. Ältere Sitzungen und manuelle Einträge haben keinen nachträglich rekonstruierten Pulsverlauf. Die Werte dienen deiner persönlichen Trainingsübersicht, nicht der medizinischen Diagnose, Behandlung oder Alarmierung.
 
 Auf Uhren bis Android 15 (API 35) wird BODY_SENSORS verwendet; ab Android 16 (API 36) READ_HEART_RATE. Die Berechtigung ist optional. Du kannst sie verweigern oder in den Systemeinstellungen widerrufen und das Training ohne Pulswerte fortsetzen. Auf dem Smartphone fordert Easy Hof diese Sensorberechtigungen nicht an.
@@ -74,6 +76,8 @@ Easy Hof processes the breathing and cold sessions you start, as well as showers
 There is no Easy Hof user account. Training functions, bundled audio and fonts work offline. The developer does not operate a server that receives your training or heart-rate data.
 
 ## 3. Optional heart rate on the watch
+
+From version 1.3.1 optional sensor access is requested when starting training on the watch. It can wait up to three minutes for the phone breathing exercise without reading the heart-rate sensor. Measurement begins only with the phone exercise.
 
 With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start, or after you confirm on the watch for a breathing session on your paired phone. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started training session.
 

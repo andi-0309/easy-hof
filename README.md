@@ -81,13 +81,22 @@ im zusätzlichen Platz die Landschaft. Verlauf und Einstellungen bleiben am Tele
 Eine laufende Kälteaufzeichnung funktioniert auch bei vorübergehend getrennter
 Verbindung und wird später synchronisiert.
 
-**Puls beim Atmen:** Starte das Atemtraining am Telefon, öffne Easy Hof auf der
-gekoppelten Uhr und tippe auf **Puls starten**. Bestätige den optionalen Sensorzugriff.
-Danach erscheint der Puls am Telefon und wird mit der Atemeinheit gespeichert.
-Die Übertragung benötigt eine Geräteverbindung und Google Play-Dienste. Ohne
-Messwert oder Freigabe läuft das Atemtraining weiter. Bei einer Pause werden keine
-Pulspunkte erfasst; bei längerem Verbindungsabbruch endet die Sensoraufnahme.
-Es findet keine Pulsmessung außerhalb gestarteter Trainings statt.
+**Puls beim Atmen:** Starte **Atmen** auf der Uhr und erteile beim Trainingsstart
+den optionalen Sensorzugriff. Die Uhr ist bis zu drei Minuten für das Atemtraining
+am Telefon bereit und verbindet sich dann automatisch mit der Einheit. Du kannst
+auch zuerst am Telefon beginnen. Ein zusätzlicher Puls-Menüpunkt entfällt.
+Ohne Freigabe oder Messwerte läuft die Atemübung am Telefon weiter. Die
+Übertragung benötigt eine Geräteverbindung und Google Play-Dienste.
+
+**Kälte-Standardwerte:** Dusche 3 Minuten, Eisbad 5 Minuten, Temperatur 5 °C.
+Zielzeit und Temperatur lassen sich vor dem Start ändern; die Temperaturtasten
+verwenden 1-Grad-Schritte. Beim Erreichen der Zielzeit vibriert die Uhr deutlich.
+
+**Krone & Wassersperre:** Die Krone scrollt Listen und Dialoge. Beim Start einer
+Dusche oder eines Eisbads sperrt Easy Hof seine Touch-Bedienung automatisch.
+Drehe die Krone, bis der Ring um das Schloss vollständig gefüllt ist, um wieder
+bedienen zu können. Die Sperre gilt innerhalb von Easy Hof; sie aktiviert keinen
+herstellerspezifischen systemweiten Wassermodus und keine Lautsprecherentleerung.
 
 **Installation über Google Play:**
 

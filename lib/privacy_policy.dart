@@ -1,3 +1,4 @@
+import 'nordic.dart';
 import 'package:flutter/material.dart';
 
 class PrivacyPolicy extends StatelessWidget {
@@ -6,13 +7,13 @@ class PrivacyPolicy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
+    appBar: NordicAppBar(
       title: Text(language == 'de' ? 'Datenschutz' : 'Privacy policy'),
     ),
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
+          constraints: const BoxConstraints(maxWidth: nordicPageWidth),
           child: FutureBuilder<String>(
             future: DefaultAssetBundle.of(context).loadString(
               'assets/privacy/privacy-${language == 'de' ? 'de' : 'en'}.txt',
