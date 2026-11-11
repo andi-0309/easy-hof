@@ -36,10 +36,14 @@ jobs:
       - run: flutter --suppress-analytics pub get --enforce-lockfile
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: python3 tools/check_voice_assets.py
+      - name: Check public and offline privacy copies stay in sync
+        run: |
+          python3 tools/generate_privacy_policy.py
+          git diff --exit-code -- PRIVACY.md assets/privacy
       - run: python3 tools/test_release_version.py
       - run: python3 tools/test_play_access.py
       - run: flutter --suppress-analytics analyze
-      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart
+      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart test/privacy_test.dart
       - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart
   build:
     needs: check

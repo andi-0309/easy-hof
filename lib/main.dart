@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'breathing.dart';
 import 'platform.dart';
 import 'nordic.dart';
+import 'privacy_policy.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
@@ -310,9 +311,15 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     if (!await confirm(
       t('Kältetraining', 'Cold training'),
       t(
-        'Im Wasser normal weiteratmen — keine Atemhalteübungen. Eisbad nicht allein. Beende die Einheit bei Unwohlsein. Die Zielzeit ist optional, keine Empfehlung. Pulswerte können bei Kälte ungenau sein und sind kein Sicherheitssignal.',
-        'Breathe normally in water — no breath holds. Do not ice bathe alone. Stop if unwell. A target time is optional, not a recommendation. Heart rate can be inaccurate in cold conditions and is not a safety indicator.',
-      ),
+            'Im Wasser normal weiteratmen — keine Atemhalteübungen. Eisbad nicht allein. Beende die Einheit bei Unwohlsein. Die Zielzeit ist optional, keine Empfehlung. Pulswerte können bei Kälte ungenau sein und sind kein Sicherheitssignal.',
+            'Breathe normally in water — no breath holds. Do not ice bathe alone. Stop if unwell. A target time is optional, not a recommendation. Heart rate can be inaccurate in cold conditions and is not a safety indicator.',
+          ) +
+          (isWear
+              ? t(
+                  '\n\nOptionaler Pulszugriff: Mit deiner Freigabe zeigt Easy Hof während dieser Sitzung deinen Puls an. Durchschnitt, Minimum und Maximum werden auf der Uhr gespeichert und über Google Play-Dienste mit deinem gekoppelten Smartphone synchronisiert. Du kannst die Sensorberechtigung ablehnen; der Timer bleibt ohne Pulswerte nutzbar.',
+                  '\n\nOptional heart rate: With your permission, Easy Hof displays your heart rate during this session. Average, minimum and maximum are stored on the watch and synchronized with your paired phone through Google Play services. You can decline sensor permission and continue using the timer without heart-rate values.',
+                )
+              : ''),
     )) {
       return;
     }
@@ -1169,6 +1176,15 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         ),
       ),
       const SizedBox(height: 8),
+      TextButton.icon(
+        icon: const Icon(Icons.privacy_tip_outlined),
+        label: Text(t('Datenschutz', 'Privacy policy')),
+        onPressed: () => Navigator.of(dialogContext).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PrivacyPolicy(language: language),
+          ),
+        ),
+      ),
       const Text('Version 1.0.0'),
     ]),
   ];

@@ -1,0 +1,52 @@
+Privacy policy – Easy Hof
+Last updated: 2026-11-11
+Online: https://github.com/andi-0309/easy-hof/blob/main/PRIVACY.md
+
+1. Scope and contact
+
+This policy describes Easy Hof for Android and Wear OS, package io.github.andi_0309.easyhof. The developer and privacy contact is project maintainer andi-0309.
+
+Contact for privacy enquiries: https://github.com/andi-0309/easy-hof/issues
+GitHub issues are public and require a GitHub account. Health information is not required for an enquiry; a private contact channel can first be arranged there for confidential matters.
+
+2. Training data on your devices
+
+Easy Hof processes the breathing and cold sessions you start. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
+
+There is no Easy Hof user account. Training functions, bundled audio and fonts work offline. The developer does not operate a server that receives your training or heart-rate data.
+
+3. Optional heart rate on the watch
+
+With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started cold session.
+
+Stored session statistics comprise minimum, maximum, and the count and sum of accepted measurements used to calculate the average. A complete sequence of individual timestamped heart-rate readings is not saved in history. Values support your personal training overview, not medical diagnosis, treatment or alerts.
+
+Watches through Android 15 (API 35) use BODY_SENSORS; Android 16 (API 36) and later use READ_HEART_RATE. Permission is optional. You can decline or revoke it in system settings and continue training without heart-rate values. The phone app does not request these sensor permissions.
+
+4. Phone and watch synchronization
+
+Stored sessions, including available heart-rate summaries and deletion markers, are synchronized with Easy Hof on your paired devices through the Google Play services Wear OS Data Layer. Transfer may occur later when connectivity returns. Session synchronization is part of the app and is triggered automatically when a connection is available; there is currently no separate switch to disable sync.
+
+Device synchronization uses Google Play services. Transport and technical processing by platform services are also governed by their terms and your device settings. The app does not send these records to a service operated by the Easy Hof developer. Google privacy information: https://policies.google.com/privacy
+
+5. Storage, export and deletion
+
+Sessions and settings are stored in each device’s private app storage until you delete them or remove app data. There is no automatic age-based deletion. The app disables Android cloud backup and automatic app-data transfer in its backup configuration.
+
+On the phone, you can explicitly export history to a JSON file or import such a backup. The exported file can contain training and heart-rate data and is not additionally encrypted by Easy Hof. You choose its location through Android; a cloud document provider you select may transfer and retain it under its own rules. The developer does not automatically receive the export.
+
+Deleting a session replaces its training and heart-rate contents in the app history with a technical deletion marker. Its identifier and deletion timestamp may remain to prevent reimporting an older copy from another device. Let your devices synchronize after deleting synchronized sessions. Copies on disconnected devices or in exported files remain until individually deleted. Removing local app data does not automatically delete separate backup files or copies on another device.
+
+6. Advertising, analytics and external services
+
+Easy Hof has no advertising or dedicated analytics/crash-tracking SDKs. The developer does not use training or heart-rate data for advertising or sell it.
+
+Google Play, Google Play services and Android/Wear OS may independently process technical operational and diagnostic data under their own settings and privacy notices, and may provide diagnostics through Google Play. Opening the store link launches Google Play or your browser without adding session data to the URL.
+
+This public policy and source code are hosted on GitHub. Visiting the GitHub page allows GitHub to process technical access data under its own privacy statement: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement . The copy bundled with the app can be read offline.
+
+7. Your controls and policy updates
+
+You choose when to start training and whether to grant heart-rate permission. Manage permissions in system settings, delete sessions in the app and export history. Use the contact above for privacy questions.
+
+This policy is updated when data processing changes. The online policy describes the version indicated there; each app build includes its corresponding offline copy.

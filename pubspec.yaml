@@ -18,6 +18,7 @@ flutter:
     - assets/audio/en/
     - assets/audio/breath/
     - assets/images/
+    - assets/privacy/
   fonts:
     - family: Manrope
       fonts:

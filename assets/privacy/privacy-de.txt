@@ -1,0 +1,52 @@
+Datenschutzerklärung – Easy Hof
+Stand: 2026-11-11
+Online: https://github.com/andi-0309/easy-hof/blob/main/PRIVACY.md
+
+1. Geltungsbereich und Kontakt
+
+Diese Erklärung beschreibt Easy Hof für Android und Wear OS mit dem Paketnamen io.github.andi_0309.easyhof. Entwickler und Datenschutzkontakt ist der Projektbetreuer andi-0309.
+
+Kontakt für Datenschutzfragen: https://github.com/andi-0309/easy-hof/issues
+GitHub-Anfragen sind öffentlich und benötigen ein GitHub-Konto. Für eine Anfrage sind keine Gesundheitsdaten erforderlich; für vertrauliche Anliegen kann dort zunächst ein privater Kontaktweg vereinbart werden.
+
+2. Trainingsdaten auf deinen Geräten
+
+Easy Hof verarbeitet die von dir gestarteten Atem- und Kältesitzungen. Dazu gehören Art, Startzeit, Dauer, optionale Zielzeit und manuell eingegebene Wassertemperatur. Bei Atemübungen werden außerdem Runden, Atemzüge, Tempo und Atemhaltezeiten gespeichert. Technische Sitzungskennungen, Änderungszeitpunkte und die Herkunft Smartphone/Uhr dienen dem Abgleich der Einträge. Sprache, Audio, Vibration und Übungsparameter werden als lokale Einstellungen gespeichert.
+
+Es gibt kein Easy-Hof-Benutzerkonto. Die Trainingsfunktionen und eingebundenen Audiodateien und Schriften funktionieren offline. Der Entwickler betreibt keinen Server, der deine Trainings- oder Herzfrequenzdaten empfängt.
+
+3. Optionale Herzfrequenz auf der Uhr
+
+Nach deiner Freigabe liest die Wear-OS-App während eines von dir aktiv gestarteten Kältetrainings den Herzfrequenzsensor der Uhr aus. Der aktuelle Puls wird während der Sitzung angezeigt. Ein Vordergrunddienst hält das laufende Training aufrecht, auch wenn du die App-Ansicht verlässt. Die Sensorabfrage endet mit der Sitzung oder dem Ende des Trainingsdienstes. Es findet keine fortlaufende Pulserfassung außerhalb einer gestarteten Kältesitzung statt.
+
+Gespeichert werden statistische Sitzungswerte: Minimum, Maximum sowie Anzahl und Summe der berücksichtigten Messwerte zur Berechnung des Durchschnitts. Eine vollständige Folge einzelner zeitgestempelter Pulsmessungen wird nicht im Verlauf gespeichert. Die Werte dienen deiner persönlichen Trainingsübersicht, nicht der medizinischen Diagnose, Behandlung oder Alarmierung.
+
+Auf Uhren bis Android 15 (API 35) wird BODY_SENSORS verwendet; ab Android 16 (API 36) READ_HEART_RATE. Die Berechtigung ist optional. Du kannst sie verweigern oder in den Systemeinstellungen widerrufen und das Training ohne Pulswerte fortsetzen. Auf dem Smartphone fordert Easy Hof diese Sensorberechtigungen nicht an.
+
+4. Synchronisierung zwischen Smartphone und Uhr
+
+Gespeicherte Sitzungen einschließlich vorhandener Herzfrequenz-Zusammenfassungen und Löschmarkierungen werden über die Wear OS Data Layer der Google Play-Dienste mit der Easy-Hof-App auf deinen gekoppelten Geräten abgeglichen. Eine Übertragung kann später erfolgen, sobald wieder eine Verbindung besteht. Die Sitzungs-Synchronisierung ist Bestandteil der App und wird bei verfügbarer Verbindung automatisch angestoßen; es gibt derzeit keinen separaten Sync-Ausschalter.
+
+Für den Geräteabgleich werden Google Play-Dienste verwendet. Transport und technische Verarbeitung durch diese Plattformdienste richten sich auch nach deren Bedingungen und deinen Geräteeinstellungen. Die App sendet diese Daten nicht an einen vom Easy-Hof-Entwickler betriebenen Dienst. Informationen zu Google: https://policies.google.com/privacy
+
+5. Speicherung, Export und Löschen
+
+Sitzungen und Einstellungen liegen im privaten App-Speicher des jeweiligen Geräts. Sie bleiben dort, bis du sie löschst oder die App-Daten entfernst; eine automatische zeitliche Löschung ist nicht eingerichtet. Die App deaktiviert die Android-Cloud-Sicherung und den automatischen App-Datentransfer in ihrer Sicherungskonfiguration.
+
+Auf dem Smartphone kannst du den Verlauf auf eigenen Wunsch als JSON-Datei exportieren oder eine solche Sicherung importieren. Die Exportdatei kann Trainings- und Herzfrequenzwerte enthalten und erhält von Easy Hof keine zusätzliche Dateiverschlüsselung. Du wählst den Speicherort über Android; ein ausgewählter Cloud-Dateianbieter kann die Datei nach seinen eigenen Regeln übertragen und speichern. Der Entwickler erhält die Exportdatei nicht automatisch.
+
+Beim Löschen einer Sitzung werden deren Trainings- und Pulswerte im App-Verlauf durch eine technische Löschmarkierung ersetzt. Kennung und Löschzeitpunkt können verbleiben, damit ein älterer Eintrag auf einem anderen Gerät nicht erneut importiert wird. Für das Löschen synchronisierter Einheiten lass deine Geräte nach der Löschung wieder synchronisieren. Kopien auf noch nicht verbundenen Geräten oder in exportierten Dateien bleiben bis zu ihrer jeweiligen Löschung bestehen. Das Entfernen lokaler App-Daten löscht nicht automatisch separat gespeicherte Sicherungen oder die Kopie auf einem anderen Gerät.
+
+6. Werbung, Analysen und externe Dienste
+
+Easy Hof enthält keine Werbung und keine eigenen Analyse- oder Crash-Tracking-SDKs. Trainings- und Herzfrequenzdaten werden vom Entwickler nicht zu Werbezwecken verwendet oder verkauft.
+
+Google Play, Google Play-Dienste und Android/Wear OS können unabhängig davon technische Betriebs- und Diagnosedaten nach ihren eigenen Einstellungen und Datenschutzhinweisen verarbeiten und etwa Fehlerberichte über Google Play bereitstellen. Wenn du den Store-Link in Easy Hof öffnest, wird der Google Play Store beziehungsweise dein Browser aufgerufen. Es werden dabei keine Sitzungsdaten als URL-Parameter übergeben.
+
+Diese öffentliche Erklärung und der Quellcode werden auf GitHub gehostet. Beim Aufruf der GitHub-Seite verarbeitet GitHub technische Zugriffsdaten nach seinen eigenen Datenschutzhinweisen: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement . Die in der App enthaltene Kopie dieser Erklärung kann offline gelesen werden.
+
+7. Deine Kontrolle und Änderungen
+
+Du entscheidest, wann du ein Training startest und ob du die Herzfrequenzberechtigung erteilst. Du kannst Berechtigungen in den Systemeinstellungen verwalten sowie Einheiten in der App löschen und den Verlauf exportieren. Fragen zu dieser Erklärung oder zur Datenverarbeitung kannst du über den oben angegebenen Kontaktweg stellen.
+
+Bei Änderungen der Datenverarbeitung wird diese Erklärung aktualisiert. Die veröffentlichte Onlinefassung gilt für den dort beschriebenen Versionsstand; die App enthält die zu ihrem Build gehörende Offlinefassung.

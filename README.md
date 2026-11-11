@@ -10,7 +10,7 @@ Deutsch und Englisch. Ohne Konto. Ohne Abo. Ohne Tracking.
 [![Release](https://img.shields.io/github/v/release/andi-0309/easy-hof)](https://github.com/andi-0309/easy-hof/releases)
 [![Flutter](https://img.shields.io/badge/Built_with-Flutter-075B68)](https://flutter.dev)
 
-[**App herunterladen**](https://github.com/andi-0309/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Mitmachen](#mitmachen)
+[**App herunterladen**](https://github.com/andi-0309/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Datenschutz](PRIVACY.md) · [Mitmachen](#mitmachen)
 
 ![Nordic Elements – warme Lichtflächen und kühle Bergschatten](assets/images/nordic-mountains.webp)
 
