@@ -75,6 +75,46 @@ GitHub/Obtainium users install `easy-hof-phone.apk`; the watch APK is available
 for developers. All phone distributions open the Play Store for watch installation.
 The watch installer no longer uses Wireless debugging or bundled APKs.
 
+## Google Play upload through GitHub Actions
+
+Google authentication uses Workload Identity Federation through service account
+`easy-hof-github@rock-arc-514408-k3.iam.gserviceaccount.com` and provider
+`projects/470971669836/locations/global/workloadIdentityPools/easy-hof-github/providers/github`.
+These identifiers are public configuration. No Google service-account key is stored.
+
+The Google provider must admit only repository ID `1450193680`, owner ID
+`120754898`, trusted `main` / `v*` tag refs and push/workflow_dispatch events.
+The account needs `roles/iam.workloadIdentityUser` for that repository principal
+and Easy Hof-specific Play Console permissions to view app information and release
+to testing tracks. Production publishing permission is not required.
+
+Trusted workflows first run **Verify Google Play access**. This creates a temporary
+edit, lists tracks, discovers the phone and Wear OS internal track names and deletes
+the edit without changing a release. Authentication errors indicate Google Cloud
+federation/IAM configuration; HTTP 403 from the Publisher API indicates Play Console
+permissions or a disabled Android Publisher API. Missing Wear internal tracks must
+be configured in Play Console.
+
+To upload new draft releases:
+
+1. Push a stable `vMAJOR.MINOR.PATCH` tag; or
+2. Open Actions → Android & Wear OS → Run workflow, select `main`, and enable
+   **Als Entwurf nach Google Play hochladen**.
+
+Normal pushes to main verify access and build artifacts, but do not upload drafts.
+The phone AAB and Wear AAB are uploaded sequentially into separate discovered tracks.
+All API releases use status `draft`; review and finish them in Play Console to
+make them available to testers. No production track is selected. Upload jobs are
+serialized to avoid competing API edits. Manual Console edits during an active
+upload can invalidate the API edit; retry with a new workflow run if necessary.
+
+Each new workflow run generates new version codes. Use Run workflow for a new
+upload after a version code has been used, rather than re-uploading the same file.
+Google requires the package to have an initial manual Console upload before using
+the publishing API. Generated `gha-creds-*.json` files are ignored and automatically
+removed after authentication jobs. The upload uses SHA-pinned authentication and
+publisher actions, with `id-token: write` granted only to the two Google jobs.
+
 ## Build locally
 
 ```sh

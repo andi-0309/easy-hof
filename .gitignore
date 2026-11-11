@@ -49,3 +49,6 @@ app.*.map.json
 
 *.keystore
 *.jks
+
+# Short-lived Google Actions credentials must not enter source or artifacts.
+gha-creds-*.json

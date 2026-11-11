@@ -5,10 +5,19 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      upload_play:
+        description: Als Entwurf nach Google Play hochladen
+        type: boolean
+        required: false
+        default: false
 env:
   CI: true
   FLUTTER_SUPPRESS_ANALYTICS: true
   DART_SUPPRESS_ANALYTICS: true
+  GCP_PROJECT_ID: rock-arc-514408-k3
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/470971669836/locations/global/workloadIdentityPools/easy-hof-github/providers/github
+  GCP_SERVICE_ACCOUNT: easy-hof-github@rock-arc-514408-k3.iam.gserviceaccount.com
 permissions:
   contents: read
 concurrency:
@@ -28,6 +37,7 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: python3 tools/check_voice_assets.py
       - run: python3 tools/test_release_version.py
+      - run: python3 tools/test_play_access.py
       - run: flutter --suppress-analytics analyze
       - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart
       - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart
@@ -146,6 +156,73 @@ jobs:
       - name: Remove private signing file
         if: always()
         run: rm -f "$RUNNER_TEMP/easy-hof.jks"
+  verify_play:
+    name: Verify Google Play access
+    needs: check
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      phone_track: ${{ steps.tracks.outputs.phone_track }}
+      wear_track: ${{ steps.tracks.outputs.wear_track }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate with short-lived Google credentials
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/androidpublisher
+      - name: Check permissions and discover phone and Wear internal tracks
+        id: tracks
+        env:
+          GOOGLE_PLAY_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: python3 tools/check_play_access.py
+  upload_play:
+    name: Upload Google Play drafts
+    needs: [build, verify_play]
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.upload_play)
+    runs-on: ubuntu-latest
+    concurrency:
+      group: google-play-io.github.andi_0309.easyhof
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: play-store-bundles
+          path: dist-play
+      - name: Authenticate immediately before uploading
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+      - name: Upload phone draft
+        uses: r0adkll/upload-google-play@eb49699984a39f23558439581660aa6f088acfd6 # v1
+        with:
+          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+          packageName: io.github.andi_0309.easyhof
+          releaseFiles: dist-play/easy-hof-phone.aab
+          tracks: ${{ needs.verify_play.outputs.phone_track }}
+          status: draft
+      - name: Upload Wear OS draft
+        uses: r0adkll/upload-google-play@eb49699984a39f23558439581660aa6f088acfd6 # v1
+        with:
+          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+          packageName: io.github.andi_0309.easyhof
+          releaseFiles: dist-play/easy-hof-wear.aab
+          tracks: ${{ needs.verify_play.outputs.wear_track }}
+          status: draft
   release:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
