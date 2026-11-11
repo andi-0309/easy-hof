@@ -7,6 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Future<void> reveal(
+  WidgetTester tester,
+  Finder target,
+  double delta, {
+  Finder? scrollable,
+}) => tester.scrollUntilVisible(
+  target,
+  delta,
+  scrollable: scrollable ?? find.byType(Scrollable).first,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   for (final kind in ['shower', 'bath']) {
@@ -46,17 +57,14 @@ void main() {
         await tester.enterText(find.byKey(const Key('manual-time')), '12:30');
         await tester.enterText(find.byKey(const ValueKey('Minutes')), '3');
         await tester.enterText(find.byKey(const ValueKey('Seconds')), '15');
-        await tester.scrollUntilVisible(
-          find.byKey(const Key('manual-temperature')),
-          200,
-        );
+        await reveal(tester, find.byKey(const Key('manual-temperature')), 200);
         if (kind == 'bath') {
           await tester.enterText(
             find.byKey(const Key('manual-temperature')),
             '7,5',
           );
         }
-        await tester.scrollUntilVisible(find.text('Save'), 200);
+        await reveal(tester, find.text('Save'), 200);
         await tester.tap(find.text('Save'));
         await tester.pumpAndSettle();
         final saved =
@@ -97,7 +105,7 @@ void main() {
         const MaterialApp(home: ManualColdSession(language: 'en')),
       );
       await tester.enterText(find.byKey(const ValueKey('Minutes')), '0');
-      await tester.scrollUntilVisible(find.text('Save'), 200);
+      await reveal(tester, find.text('Save'), 200);
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(saved, isEmpty);
@@ -105,12 +113,9 @@ void main() {
         find.text('Duration must be between 1 second and 24 hours.'),
         findsOneWidget,
       );
-      await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('Minutes')),
-        -200,
-      );
+      await reveal(tester, find.byKey(const ValueKey('Minutes')), -200);
       await tester.enterText(find.byKey(const ValueKey('Minutes')), '1');
-      await tester.scrollUntilVisible(find.text('Save'), 200);
+      await reveal(tester, find.text('Save'), 200);
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(find.text('Could not save. Please try again.'), findsOneWidget);
@@ -137,7 +142,8 @@ void main() {
       await tester.tap(find.text('Cold').last);
       await tester.pumpAndSettle();
     }
-    await tester.scrollUntilVisible(
+    await reveal(
+      tester,
       find.text('Add manually'),
       200,
       scrollable: find.byType(Scrollable).first,
