@@ -31,6 +31,10 @@ Design für den Abend lassen Platz für das Wesentliche: deine Routine.
 | Atemhalten ohne Leistungsdruck | Herzfrequenz auf unterstützten Uhren |
 | Übersichtlicher Trainingsverlauf | Eigenständiges Training mit Wear OS |
 
+Du hast ohne Timer trainiert? Trage Duschen und Eisbäder mit Datum, Dauer und
+optionaler Temperatur nach – direkt unter **Kälte** oder im **Verlauf**, auf dem
+Smartphone oder der Uhr. Die Einträge werden mit deinen Geräten abgeglichen.
+
 Alle Ansagen, Atemgeräusche und Schriften sind in der App enthalten. Dein Training
 funktioniert offline. Sitzungen bleiben lokal, lassen sich als JSON sichern und
 zwischen gekoppeltem Smartphone und Uhr über die Wear OS Data Layer abgleichen.

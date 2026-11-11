@@ -11,7 +11,7 @@ GitHub-Anfragen sind öffentlich und benötigen ein GitHub-Konto. Für eine Anfr
 
 ## 2. Trainingsdaten auf deinen Geräten
 
-Easy Hof verarbeitet die von dir gestarteten Atem- und Kältesitzungen. Dazu gehören Art, Startzeit, Dauer, optionale Zielzeit und manuell eingegebene Wassertemperatur. Bei Atemübungen werden außerdem Runden, Atemzüge, Tempo und Atemhaltezeiten gespeichert. Technische Sitzungskennungen, Änderungszeitpunkte und die Herkunft Smartphone/Uhr dienen dem Abgleich der Einträge. Sprache, Audio, Vibration und Übungsparameter werden als lokale Einstellungen gespeichert.
+Easy Hof verarbeitet die von dir gestarteten Atem- und Kältesitzungen sowie manuell nachgetragene Duschen und Eisbäder. Manuelle Einträge enthalten keine Pulsmessungen. Dazu gehören Art, Startzeit, Dauer, optionale Zielzeit und manuell eingegebene Wassertemperatur. Bei Atemübungen werden außerdem Runden, Atemzüge, Tempo und Atemhaltezeiten gespeichert. Technische Sitzungskennungen, Änderungszeitpunkte und die Herkunft Smartphone/Uhr dienen dem Abgleich der Einträge. Sprache, Audio, Vibration und Übungsparameter werden als lokale Einstellungen gespeichert.
 
 Es gibt kein Easy-Hof-Benutzerkonto. Die Trainingsfunktionen und eingebundenen Audiodateien und Schriften funktionieren offline. Der Entwickler betreibt keinen Server, der deine Trainings- oder Herzfrequenzdaten empfängt.
 
@@ -67,7 +67,7 @@ GitHub issues are public and require a GitHub account. Health information is not
 
 ## 2. Training data on your devices
 
-Easy Hof processes the breathing and cold sessions you start. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
+Easy Hof processes the breathing and cold sessions you start, as well as showers and ice baths you add manually. Manual entries do not contain heart-rate readings. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
 
 There is no Easy Hof user account. Training functions, bundled audio and fonts work offline. The developer does not operate a server that receives your training or heart-rate data.
 

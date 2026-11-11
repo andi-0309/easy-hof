@@ -9,6 +9,7 @@ import 'breathing.dart';
 import 'platform.dart';
 import 'nordic.dart';
 import 'privacy_policy.dart';
+import 'manual_cold.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
@@ -306,6 +307,25 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       }
     }
   }
+
+  Future<void> addManualCold() async {
+    final saved = await Navigator.of(dialogContext).push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            ManualColdSession(language: language, initialKind: coldType),
+      ),
+    );
+    if (saved == true && mounted) {
+      await refresh();
+      setState(() => tab = 2);
+    }
+  }
+
+  Widget manualColdButton() => OutlinedButton.icon(
+    onPressed: busy ? null : () => action(addManualCold),
+    icon: const Icon(Icons.add_rounded),
+    label: Text(t('Manuell nachtragen', 'Add manually')),
+  );
 
   Future<void> startCold() async {
     if (!await confirm(
@@ -755,6 +775,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           onPressed: busy ? null : () => action(startCold),
           label: t('Starten', 'Start'),
         ),
+        space(),
+        manualColdButton(),
       ]),
       Text(
         isWear
@@ -823,6 +845,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                 onPressed: busy ? null : () => action(startCold),
                 child: Text(t('Starten', 'Start')),
               ),
+              manualColdButton(),
               const SizedBox(height: 12),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
@@ -944,6 +967,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
         ),
         Text('${durationLabel(total)} ${t('Gesamtzeit', 'total time')}'),
+        space(),
+        manualColdButton(),
       ]),
       if (sessions.isEmpty)
         panel([
@@ -983,6 +1008,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
             durationLabel((s['durationMs'] as num? ?? 0).toInt()),
             style: const TextStyle(fontSize: 28),
           ),
+          if (s['manual'] == true)
+            Text(t('Manuell nachgetragen', 'Added manually')),
           if (s['temperature'] != null) Text('${s['temperature']} °C'),
           if (s['retentions'] is List)
             Text(

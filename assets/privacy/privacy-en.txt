@@ -11,7 +11,7 @@ GitHub issues are public and require a GitHub account. Health information is not
 
 2. Training data on your devices
 
-Easy Hof processes the breathing and cold sessions you start. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
+Easy Hof processes the breathing and cold sessions you start, as well as showers and ice baths you add manually. Manual entries do not contain heart-rate readings. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
 
 There is no Easy Hof user account. Training functions, bundled audio and fonts work offline. The developer does not operate a server that receives your training or heart-rate data.
 
