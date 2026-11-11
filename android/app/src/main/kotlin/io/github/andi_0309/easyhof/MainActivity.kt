@@ -94,14 +94,18 @@ class MainActivity : FlutterActivity() {
     }
     private fun playCue(cue: String, language: String, seconds: Int) {
         require(language in setOf("de", "en")) { "Unknown audio language" }
-        require(cue in setOf("welcome", "countdown", "inhale", "exhale", "retention", "recovery", "rest", "done")) { "Unknown audio cue" }
+        require(cue in setOf("welcome", "countdown", "inhale", "exhale", "retention", "recovery", "rest", "done", "final_exhale")) { "Unknown audio cue" }
         stopAudio()
         require(seconds in 2..4) { "Invalid breath duration" }
         val key = if (cue == "inhale" || cue == "exhale") "breath/$cue-$seconds" else "$language/$cue"
         val file = cachedClips.getOrPut(key) {
-            val path = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset("assets/audio/$key.mp3")
+            val extension = if (cue == "final_exhale") "b64" else "mp3"
+            val path = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset("assets/audio/$key.$extension")
             File(cacheDir, "easy-hof-${key.replace('/', '-')}.mp3").also { destination ->
-                assets.open(path).use { input -> destination.outputStream().use { output -> input.copyTo(output) } }
+                assets.open(path).use { input ->
+                    if (cue == "final_exhale") destination.writeBytes(android.util.Base64.decode(input.readBytes(), android.util.Base64.DEFAULT))
+                    else destination.outputStream().use { output -> input.copyTo(output) }
+                }
             }
         }
         val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)

@@ -1,6 +1,6 @@
 # Bundled voice guidance
 
-Easy Hof includes 16 synthesized speech clips: eight in German and eight in English. These are app-specific recordings of the scripts in `phrases.json`, generated locally with **Piper 1.8.0**. The Android app plays the committed MP3 files directly; it does not contain Piper, the voice models, an Android TTS dependency or a speech API key. No voice download is needed at runtime.
+Easy Hof includes 18 synthesized speech clips: nine in German and nine in English. These are app-specific recordings of the scripts in `phrases.json`, generated locally with **Piper 1.8.0**. The Android app plays the committed MP3 files directly; it does not contain Piper, the voice models, an Android TTS dependency or a speech API key. No voice download is needed at runtime.
 
 ## Sources and attribution
 
@@ -39,3 +39,16 @@ No third-party recordings, cloned voice or speech model is involved. Each phase
 uses its matching duration at normal playback speed; no pitch shifting. Existing
 spoken inhale/exhale clips are retained for provenance but are not played during
 training. Disable voice guidance to mute both breath sounds and spoken cues.
+
+## Last exhale transition
+
+The final breath uses a dedicated German/English `final_exhale` clip within a
+six-second exhale phase. The clips ask users to release the last breath gently,
+without pushing. Normal breaths continue to use non-verbal breathing sounds.
+The two new MP3 clips are stored as Base64 text (`final_exhale.b64`) to allow
+lossless source updates through the repository API. Android decodes them into
+its private audio cache before playback; no network or synthesis is used by
+the app. Checksums and measured loudness refer to the decoded MP3 bytes.
+
+The generation script sets `ORT_DISABLE_TELEMETRY=1` before importing ONNX and
+also calls its telemetry-disable API before creating synthesis sessions.

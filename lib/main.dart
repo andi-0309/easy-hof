@@ -4,18 +4,21 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'breathing.dart';
 import 'platform.dart';
 import 'nordic.dart';
 import 'privacy_policy.dart';
 import 'manual_cold.dart';
+import 'training_history.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
 
 class EasyHof extends StatefulWidget {
-  const EasyHof({super.key});
+  const EasyHof({super.key, this.elapsedMs});
+  final int Function()? elapsedMs;
   @override
   State<EasyHof> createState() => _EasyHofState();
 }
@@ -39,6 +42,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   BreathingSession? breathing;
   Timer? timer;
   final Stopwatch clock = Stopwatch();
+  int get elapsed => widget.elapsedMs?.call() ?? clock.elapsedMilliseconds;
   int lastTick = 0;
   bool completing = false;
   String? lastCue;
@@ -110,7 +114,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   int refreshTicks = 0;
   bool refreshing = false;
   void tick() {
-    final now = clock.elapsedMilliseconds;
+    final now = elapsed;
     final delta = now - lastTick;
     lastTick = now;
     final b = breathing;
@@ -142,7 +146,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       if (mounted) setState(() {});
     }
     if (state == AppLifecycleState.resumed) {
-      lastTick = clock.elapsedMilliseconds;
+      lastTick = elapsed;
       refresh();
     }
   }
@@ -222,7 +226,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       cycleSeconds: pace,
     )..start();
     started['breathing'] = DateTime.now().toUtc().toIso8601String();
-    lastTick = clock.elapsedMilliseconds;
+    lastTick = elapsed;
     lastCue = null;
     completing = false;
     await Device.call('keepScreen', {'enabled': true});
@@ -238,7 +242,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     lastCue = key;
     if (voice && b.phase != BreathPhase.ready) {
       Device.playCue(
-        b.phase.name,
+        b.isFinalExhale ? 'final_exhale' : b.phase.name,
         language,
         seconds:
             (b.phase == BreathPhase.inhale || b.phase == BreathPhase.exhale)
@@ -309,6 +313,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   }
 
   Future<void> addManualCold() async {
+    if (isWear) return;
     final saved = await Navigator.of(dialogContext).push<bool>(
       MaterialPageRoute(
         builder: (_) =>
@@ -336,8 +341,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ) +
           (isWear
               ? t(
-                  '\n\nOptionaler Pulszugriff: Mit deiner Freigabe zeigt Easy Hof während dieser Sitzung deinen Puls an. Durchschnitt, Minimum und Maximum werden auf der Uhr gespeichert und über Google Play-Dienste mit deinem gekoppelten Smartphone synchronisiert. Du kannst die Sensorberechtigung ablehnen; der Timer bleibt ohne Pulswerte nutzbar.',
-                  '\n\nOptional heart rate: With your permission, Easy Hof displays your heart rate during this session. Average, minimum and maximum are stored on the watch and synchronized with your paired phone through Google Play services. You can decline sensor permission and continue using the timer without heart-rate values.',
+                  '\n\nOptionaler Pulszugriff: Mit deiner Freigabe zeigt Easy Hof während dieser Sitzung deinen Puls an. Pulsverlauf, Durchschnitt, Minimum und Maximum werden auf der Uhr gespeichert und über Google Play-Dienste mit deinem gekoppelten Smartphone synchronisiert. Du kannst die Sensorberechtigung ablehnen; der Timer bleibt ohne Pulswerte nutzbar.',
+                  '\n\nOptional heart rate: With your permission, Easy Hof displays your heart rate during this session. Heart-rate trace, average, minimum and maximum are stored on the watch and synchronized with your paired phone through Google Play services. You can decline sensor permission and continue using the timer without heart-rate values.',
                 )
               : ''),
     )) {
@@ -361,6 +366,19 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Easy Hof',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: {
+        ...WidgetsBinding.instance.platformDispatcher.locales.where(
+          GlobalMaterialLocalizations.delegate.isSupported,
+        ),
+        const Locale('de'),
+        const Locale('en'),
+      }.toList(),
+      builder: (context, child) => NordicBackdrop(child: child!),
       theme: nordicTheme(Brightness.light, wear: isWear),
       darkTheme: nordicTheme(Brightness.dark, wear: isWear),
       themeMode: isWear ? ThemeMode.dark : ThemeMode.system,
@@ -499,14 +517,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     );
   }
 
-  Widget panel(List<Widget> children) => Card(
-    margin: const EdgeInsets.symmetric(vertical: 8),
-    child: Padding(
-      padding: EdgeInsets.all(isWear ? 8 : 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
+  Widget panel(List<Widget> children) => NordicCard(
+    padding: EdgeInsets.all(isWear ? 10 : 20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
     ),
   );
   Widget space() => const SizedBox(height: 16);
@@ -776,7 +791,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           label: t('Starten', 'Start'),
         ),
         space(),
-        manualColdButton(),
+        if (!isWear) manualColdButton(),
       ]),
       Text(
         isWear
@@ -841,11 +856,10 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                 ],
                 onChanged: (v) => setState(() => coldType = v!),
               ),
-              FilledButton(
+              SunButton(
                 onPressed: busy ? null : () => action(startCold),
-                child: Text(t('Starten', 'Start')),
+                label: t('Starten', 'Start'),
               ),
-              manualColdButton(),
               const SizedBox(height: 12),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
@@ -922,6 +936,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
               ),
               if (a['temperature'] != null)
                 Text('${a['temperature']} °C', textAlign: TextAlign.center),
+              if ((a['hrSamples'] as List? ?? []).isNotEmpty)
+                HeartRateChart(session: a, language: language),
               if ((a['goalSeconds'] as num? ?? 0) > 0)
                 Text(
                   '${t('Ziel', 'Target')}: ${durationLabel((a['goalSeconds'] as num).toInt() * 1000)}${a['goalReached'] == true ? ' ✓' : ''}',
@@ -948,109 +964,28 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     _ => '',
   };
 
-  List<Widget> historyView() {
-    final sessions = history;
-    final total = sessions.fold<int>(
-      0,
-      (sum, s) => sum + (s['durationMs'] as num? ?? 0).toInt(),
-    );
-    return [
-      Text(
-        t(
-          'Dein Training, auf deinen Geräten.',
-          'Your practice, on your devices.',
-        ),
-      ),
-      panel([
-        Text(
-          '${sessions.length} ${t('Einheiten', 'sessions')}',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-        Text('${durationLabel(total)} ${t('Gesamtzeit', 'total time')}'),
-        space(),
-        manualColdButton(),
-      ]),
-      if (sessions.isEmpty)
-        panel([
-          const Icon(Icons.spa_outlined, size: 40),
-          space(),
-          Text(
-            t(
-              'Hier erscheinen deine Atem- und Kälteeinheiten.',
-              'Your breathing and cold sessions will appear here.',
-            ),
+  List<Widget> historyView() => [
+    TrainingHistory(
+      sessions: history,
+      language: language,
+      manualButton: isWear ? null : manualColdButton(),
+      onDelete: (session) async {
+        if (!await confirm(
+          t('Einheit löschen?', 'Delete session?'),
+          t(
+            'Wird beim nächsten Sync auch auf dem anderen Gerät gelöscht.',
+            'Will also be deleted on your other device after syncing.',
           ),
-        ]),
-      for (final s in sessions)
-        panel([
-          Row(
-            children: [
-              Icon(s['kind'] == 'breathing' ? Icons.air : Icons.ac_unit),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  s['kind'] == 'breathing'
-                      ? t('Atmen', 'Breathing')
-                      : s['kind'] == 'bath'
-                      ? t('Eisbad', 'Ice bath')
-                      : t('Dusche', 'Shower'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Text(dateLabel(s['startedAt'] as String?)),
-          space(),
-          Text(
-            durationLabel((s['durationMs'] as num? ?? 0).toInt()),
-            style: const TextStyle(fontSize: 28),
-          ),
-          if (s['manual'] == true)
-            Text(t('Manuell nachgetragen', 'Added manually')),
-          if (s['temperature'] != null) Text('${s['temperature']} °C'),
-          if (s['retentions'] is List)
-            Text(
-              '${t('Atemhalten', 'Breath holds')}: ${(s['retentions'] as List).map((v) => durationLabel((v as num).toInt())).join(' · ')}',
-            ),
-          if (s['hrCount'] != null && (s['hrCount'] as num) > 0)
-            Text(
-              '♥ Ø ${(s['hrSum'] as num) ~/ (s['hrCount'] as num)} · ${t('Min', 'Min')} ${s['hrMin']} · ${t('Max', 'Max')} ${s['hrMax']} bpm',
-            ),
-          if (s['interrupted'] == true)
-            Text(t('Vorzeitig beendet', 'Ended early')),
-          Text(
-            s['source'] == 'wear'
-                ? t('Von der Uhr', 'From watch')
-                : t('Vom Smartphone', 'From phone'),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              tooltip: t('Löschen', 'Delete'),
-              onPressed: busy
-                  ? null
-                  : () => action(() async {
-                      if (await confirm(
-                        t('Einheit löschen?', 'Delete session?'),
-                        t(
-                          'Wird beim nächsten Sync auch auf dem anderen Gerät gelöscht.',
-                          'Will also be deleted on your other device after syncing.',
-                        ),
-                        accept: t('Löschen', 'Delete'),
-                      )) {
-                        await Device.call('deleteSession', {'id': s['id']});
-                        await refresh();
-                      }
-                    }),
-              icon: const Icon(Icons.delete_outline),
-            ),
-          ),
-        ]),
-    ];
-  }
+          accept: t('Löschen', 'Delete'),
+        )) {
+          return false;
+        }
+        await Device.call('deleteSession', {'id': session['id']});
+        await refresh();
+        return true;
+      },
+    ),
+  ];
 
   String dateLabel(String? iso) {
     final d = DateTime.tryParse(iso ?? '')?.toLocal();
@@ -1231,8 +1166,14 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     final phaseTitle = switch (b.phase) {
       BreathPhase.countdown => t('Ankommen', 'Settle in'),
       BreathPhase.inhale => t('Einatmen', 'Breathe in'),
-      BreathPhase.exhale => t('Loslassen', 'Let go'),
-      BreathPhase.retention => t('Atem halten', 'Hold gently'),
+      BreathPhase.exhale =>
+        b.isFinalExhale
+            ? t('Entspannt ausatmen', 'Exhale gently')
+            : t('Loslassen', 'Let go'),
+      BreathPhase.retention => t(
+        'Nach dem Ausatmen halten',
+        'Hold after exhaling',
+      ),
       BreathPhase.recovery => t('Einatmen & halten', 'Breathe in & hold'),
       BreathPhase.rest => t('Normal atmen', 'Breathe normally'),
       _ => t('Geschafft', 'Finished'),
@@ -1247,6 +1188,38 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           title: Text('${t('Runde', 'Round')} ${b.round} / ${b.rounds}'),
           automaticallyImplyLeading: false,
         ),
+        bottomNavigationBar:
+            b.phase == BreathPhase.retention || b.phase == BreathPhase.recovery
+            ? ColoredBox(
+                color: Theme.of(context).colorScheme.surface,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                    child: SunButton(
+                      large: true,
+                      secondary: b.phase == BreathPhase.recovery,
+                      icon: Icons.air_rounded,
+                      label: b.phase == BreathPhase.retention
+                          ? t('Ich atme wieder', 'I am breathing again')
+                          : t('Jetzt ausatmen', 'Exhale now'),
+                      onPressed: b.paused
+                          ? null
+                          : () {
+                              if (b.phase == BreathPhase.retention) {
+                                b.breatheAgain();
+                              } else {
+                                b.phase = BreathPhase.rest;
+                                b.phaseMs = 0;
+                              }
+                              cue();
+                              setState(() {});
+                            },
+                    ),
+                  ),
+                ),
+              )
+            : null,
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -1260,47 +1233,49 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    height: 230,
-                    child: Center(
-                      child: AnimatedContainer(
-                        duration: Duration(
-                          milliseconds:
-                              b.paused ||
-                                  MediaQuery.disableAnimationsOf(context)
-                              ? 0
-                              : pace * 500,
-                        ),
-                        curve: Curves.easeInOut,
-                        width:
-                            !MediaQuery.disableAnimationsOf(context) &&
-                                b.phase == BreathPhase.inhale
-                            ? 192
-                            : 160,
-                        height:
-                            !MediaQuery.disableAnimationsOf(context) &&
-                                b.phase == BreathPhase.inhale
-                            ? 192
-                            : 160,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                        ),
-                        child: Center(
+                  const SizedBox(height: 24),
+                  NordicCard(
+                    child: Column(
+                      children: [
+                        const NordicLandscape(height: 150),
+                        const SizedBox(height: 20),
+                        AnimatedScale(
+                          scale:
+                              b.phase == BreathPhase.inhale &&
+                                  !b.paused &&
+                                  !MediaQuery.disableAnimationsOf(context)
+                              ? 1.12
+                              : 1,
+                          duration: Duration(
+                            milliseconds:
+                                MediaQuery.disableAnimationsOf(context)
+                                ? 0
+                                : pace * 450,
+                          ),
                           child: Text(
                             b.phase == BreathPhase.inhale ||
                                     b.phase == BreathPhase.exhale
-                                ? '${b.breath}\n/ ${b.breaths}'
+                                ? '${b.breath} / ${b.breaths}'
                                 : countdown,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 54,
+                              fontFamily: 'Manrope',
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
-                      ),
+                        if (b.isFinalExhale) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            t(
+                              'Lass den letzten Atemzug locker ausströmen. Nicht pressen. Danach bleibt der Atem entspannt stehen.',
+                              'Let the last breath flow out naturally. Do not push. Then rest without breathing in.',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -1313,29 +1288,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                       textAlign: TextAlign.center,
                     ),
                     space(),
-                    FilledButton(
-                      onPressed: b.paused
-                          ? null
-                          : () {
-                              b.breatheAgain();
-                              cue();
-                              setState(() {});
-                            },
-                      child: Text(t('Ich atme wieder', 'I am breathing again')),
-                    ),
                   ],
-                  if (b.phase == BreathPhase.recovery)
-                    TextButton(
-                      onPressed: b.paused
-                          ? null
-                          : () {
-                              b.phase = BreathPhase.rest;
-                              b.phaseMs = 0;
-                              cue();
-                              setState(() {});
-                            },
-                      child: Text(t('Jetzt ausatmen', 'Exhale now')),
-                    ),
                   space(),
                   if (pendingBreathing != null)
                     FilledButton(
@@ -1343,11 +1296,13 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                       child: Text(t('Erneut speichern', 'Retry save')),
                     )
                   else ...[
-                    OutlinedButton.icon(
+                    SunButton(
+                      secondary: true,
+                      large: true,
                       onPressed: () {
                         setState(() {
                           b.paused = !b.paused;
-                          lastTick = clock.elapsedMilliseconds;
+                          lastTick = elapsed;
                         });
                         if (b.paused) {
                           Device.call('stopSpeech');
@@ -1356,14 +1311,16 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                           cue();
                         }
                       },
-                      icon: Icon(b.paused ? Icons.play_arrow : Icons.pause),
-                      label: Text(
-                        b.paused
-                            ? t('Fortsetzen', 'Resume')
-                            : t('Pause', 'Pause'),
-                      ),
+                      icon: b.paused ? Icons.play_arrow : Icons.pause,
+                      label: b.paused
+                          ? t('Fortsetzen', 'Resume')
+                          : t('Pause', 'Pause'),
                     ),
-                    TextButton(
+                    const SizedBox(height: 16),
+                    SunButton(
+                      secondary: true,
+                      icon: Icons.stop_rounded,
+                      label: t('Beenden', 'Finish'),
                       onPressed: () => action(() async {
                         b.paused = true;
                         await Device.call('stopSpeech');
@@ -1379,7 +1336,6 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                           await finishBreathing(interrupted: true);
                         }
                       }),
-                      child: Text(t('Beenden', 'Finish')),
                     ),
                   ],
                 ],

@@ -55,11 +55,32 @@ void main() {
         );
         await tester.tap(find.text('Open'));
         await tester.pumpAndSettle();
-        await tester.enterText(
-          find.byKey(const Key('manual-date')),
-          '2026-01-15',
+        await tester.tap(find.byKey(const Key('manual-date')));
+        await tester.pumpAndSettle();
+        expect(find.byType(DatePickerDialog), findsOneWidget);
+        final chosenDate = tester
+            .widget<DatePickerDialog>(find.byType(DatePickerDialog))
+            .initialDate!;
+        Navigator.of(tester.element(find.byType(DatePickerDialog))).pop();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('manual-time')));
+        await tester.pumpAndSettle();
+        expect(find.byType(TimePickerDialog), findsOneWidget);
+        final chosenTime = tester
+            .widget<TimePickerDialog>(find.byType(TimePickerDialog))
+            .initialTime;
+        final expectedEnd = DateTime(
+          chosenDate.year,
+          chosenDate.month,
+          chosenDate.day,
+          chosenTime.hour,
+          chosenTime.minute,
         );
-        await tester.enterText(find.byKey(const Key('manual-time')), '12:30');
+        final ok = MaterialLocalizations.of(
+          tester.element(find.byType(TimePickerDialog)),
+        ).okButtonLabel;
+        await tester.tap(find.text(ok));
+        await tester.pumpAndSettle();
         await tester.enterText(find.byKey(const ValueKey('Minutes')), '3');
         await tester.enterText(find.byKey(const ValueKey('Seconds')), '15');
         await reveal(tester, find.byKey(const Key('manual-temperature')), 200);
@@ -81,7 +102,7 @@ void main() {
         expect(saved['durationMs'], 195000);
         expect(
           DateTime.parse(saved['startedAt'] as String).toLocal(),
-          DateTime(2026, 1, 15, 12, 26, 45),
+          expectedEnd.subtract(const Duration(seconds: 195)),
         );
         expect(saved.containsKey('hrCount'), false);
         if (kind == 'bath') {
@@ -133,9 +154,7 @@ void main() {
     },
   );
 
-  testWidgets('phone and watch expose manual entry in their cold screen', (
-    tester,
-  ) async {
+  testWidgets('manual entry is available on phone only', (tester) async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(Device.channel, (call) async {
           if (call.method == 'settings') return jsonEncode({'language': 'en'});
@@ -147,6 +166,11 @@ void main() {
     if (!isWear) {
       await tester.tap(find.text('Cold').last);
       await tester.pumpAndSettle();
+    }
+    if (isWear) {
+      expect(find.text('Add manually'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      return;
     }
     await reveal(
       tester,

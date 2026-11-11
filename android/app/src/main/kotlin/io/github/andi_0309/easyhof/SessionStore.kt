@@ -26,6 +26,7 @@ object SessionStore {
         if (record.optLong("durationMs", -1) !in 0..86400000L) return false
         try { Instant.parse(record.getString("startedAt")) } catch (_: Exception) { return false }
         if (record.has("temperature") && !record.isNull("temperature") && record.optDouble("temperature", Double.NaN) !in -2.0..40.0) return false
+        if (!HeartRateTrace.valid(record)) return false
         if (record.has("retentions")) {
             val holds = record.optJSONArray("retentions") ?: return false
             if (holds.length() > 10 || (0 until holds.length()).any { holds.opt(it) !is Number || holds.optLong(it, -1) !in 0..86400000L }) return false

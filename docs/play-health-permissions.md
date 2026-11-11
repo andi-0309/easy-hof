@@ -9,7 +9,7 @@ Sitzung angezeigt. Ein Vordergrunddienst hält die laufende Sitzung aufrecht.
 Nach Ende der Sitzung endet die Sensorabfrage. Es gibt keine fortlaufende
 Pulserfassung außerhalb aktiv gestarteter Kältesitzungen. Im Verlauf werden
 Durchschnitt, Minimum und Maximum aus lokalen Sitzungsstatistiken dargestellt.
-Diese Ergebnisse werden über die Wear OS Data Layer mit dem gekoppelten
+Für neue Sitzungen speichert die App zusätzlich einen zeitlichen Pulsverlauf mit bis zu einem Messpunkt alle fünf Sekunden. Diese Ergebnisse werden über die Wear OS Data Layer mit dem gekoppelten
 Smartphone synchronisiert. Die Berechtigung ist optional; ohne sie funktioniert
 der Kältetimer weiter. Die Daten dienen der persönlichen Trainingsdokumentation
 und werden nicht für Werbung, medizinische Diagnosen oder Alarmierung verwendet.
@@ -22,7 +22,7 @@ Kältetrainings (Dusche oder Eisbad). Die App zeigt den aktuellen Puls an und
 speichert lokale Sitzungsstatistiken zur Darstellung von Durchschnitt, Minimum
 und Maximum. Ein Vordergrunddienst hält die aktive Sitzung aufrecht; nach Ende
 der Sitzung endet die Sensorabfrage. Es gibt keine fortlaufende Erfassung
-außerhalb gestarteter Sitzungen. Die Ergebnisse werden über die Wear OS Data
+außerhalb gestarteter Sitzungen. Neue Sitzungen speichern zusätzlich einen Pulsverlauf mit bis zu einem Messpunkt alle fünf Sekunden. Die Ergebnisse werden über die Wear OS Data
 Layer mit dem gekoppelten Smartphone synchronisiert. Die Berechtigung kann
 verweigert oder widerrufen werden; der Kältetimer bleibt ohne Pulswerte nutzbar.
 Die Daten dienen ausschließlich der persönlichen Trainingsdokumentation und

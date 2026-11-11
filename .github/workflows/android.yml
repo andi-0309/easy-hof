@@ -43,8 +43,8 @@ jobs:
       - run: python3 tools/test_release_version.py
       - run: python3 tools/test_play_access.py
       - run: flutter --suppress-analytics analyze
-      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart test/privacy_test.dart test/manual_cold_test.dart
-      - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart test/manual_cold_test.dart
+      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart test/privacy_test.dart test/manual_cold_test.dart test/manual_locale_test.dart test/training_history_test.dart test/nordic_release_test.dart
+      - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart test/manual_cold_test.dart test/training_history_test.dart test/nordic_release_test.dart
   build:
     needs: check
     runs-on: ubuntu-latest

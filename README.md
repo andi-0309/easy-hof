@@ -12,7 +12,7 @@ Deutsch und Englisch. Ohne Konto. Ohne Abo. Ohne Tracking.
 
 [**App herunterladen**](https://github.com/andi-0309/easy-hof/releases/latest) · [Installation](#installation) · [Wear OS](#deine-uhr-deine-routine) · [Datenschutz](PRIVACY.md) · [Mitmachen](#mitmachen)
 
-![Nordic Elements – warme Lichtflächen und kühle Bergschatten](assets/images/nordic-mountains.webp)
+**Nordic Elements:** Vektorberge, nordische Farben und plastische Bedienelemente – auf Smartphone und Uhr.
 
 </div>
 
@@ -33,7 +33,10 @@ Design für den Abend lassen Platz für das Wesentliche: deine Routine.
 
 Du hast ohne Timer trainiert? Trage Duschen und Eisbäder mit Datum, Dauer und
 optionaler Temperatur nach – direkt unter **Kälte** oder im **Verlauf**, auf dem
-Smartphone oder der Uhr. Die Einträge werden mit deinen Geräten abgeglichen.
+Smartphone. Die Einträge werden mit deinen Geräten abgeglichen.
+
+Der Verlauf zeigt kompakte Monatskarten und einen Trainingskalender. Tippe auf
+einen Tag für deine Einheiten und die Pulsverläufe neuer Uhr-Aufzeichnungen.
 
 Alle Ansagen, Atemgeräusche und Schriften sind in der App enthalten. Dein Training
 funktioniert offline. Sitzungen bleiben lokal, lassen sich als JSON sichern und

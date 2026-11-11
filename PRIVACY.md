@@ -19,13 +19,13 @@ Es gibt kein Easy-Hof-Benutzerkonto. Die Trainingsfunktionen und eingebundenen A
 
 Nach deiner Freigabe liest die Wear-OS-App während eines von dir aktiv gestarteten Kältetrainings den Herzfrequenzsensor der Uhr aus. Der aktuelle Puls wird während der Sitzung angezeigt. Ein Vordergrunddienst hält das laufende Training aufrecht, auch wenn du die App-Ansicht verlässt. Die Sensorabfrage endet mit der Sitzung oder dem Ende des Trainingsdienstes. Es findet keine fortlaufende Pulserfassung außerhalb einer gestarteten Kältesitzung statt.
 
-Gespeichert werden statistische Sitzungswerte: Minimum, Maximum sowie Anzahl und Summe der berücksichtigten Messwerte zur Berechnung des Durchschnitts. Eine vollständige Folge einzelner zeitgestempelter Pulsmessungen wird nicht im Verlauf gespeichert. Die Werte dienen deiner persönlichen Trainingsübersicht, nicht der medizinischen Diagnose, Behandlung oder Alarmierung.
+Gespeichert werden statistische Sitzungswerte: Minimum, Maximum sowie Anzahl und Summe der berücksichtigten Messwerte zur Berechnung des Durchschnitts. Zusätzlich wird bei neuen Aufzeichnungen ein Pulsverlauf mit höchstens einem Messpunkt je fünf Sekunden gespeichert. Jeder Messpunkt enthält die seit Sitzungsbeginn verstrichene Zeit und den Pulswert. Maximal 1.441 Punkte pro Sitzung halten Speicherung und Geräteabgleich begrenzt. Fehlende Messungen werden nicht ergänzt. Ältere Sitzungen und manuelle Einträge haben keinen nachträglich rekonstruierten Pulsverlauf. Die Werte dienen deiner persönlichen Trainingsübersicht, nicht der medizinischen Diagnose, Behandlung oder Alarmierung.
 
 Auf Uhren bis Android 15 (API 35) wird BODY_SENSORS verwendet; ab Android 16 (API 36) READ_HEART_RATE. Die Berechtigung ist optional. Du kannst sie verweigern oder in den Systemeinstellungen widerrufen und das Training ohne Pulswerte fortsetzen. Auf dem Smartphone fordert Easy Hof diese Sensorberechtigungen nicht an.
 
 ## 4. Synchronisierung zwischen Smartphone und Uhr
 
-Gespeicherte Sitzungen einschließlich vorhandener Herzfrequenz-Zusammenfassungen und Löschmarkierungen werden über die Wear OS Data Layer der Google Play-Dienste mit der Easy-Hof-App auf deinen gekoppelten Geräten abgeglichen. Eine Übertragung kann später erfolgen, sobald wieder eine Verbindung besteht. Die Sitzungs-Synchronisierung ist Bestandteil der App und wird bei verfügbarer Verbindung automatisch angestoßen; es gibt derzeit keinen separaten Sync-Ausschalter.
+Gespeicherte Sitzungen einschließlich vorhandener Herzfrequenz-Zusammenfassungen, Pulsverläufe und Löschmarkierungen werden über die Wear OS Data Layer der Google Play-Dienste mit der Easy-Hof-App auf deinen gekoppelten Geräten abgeglichen. Eine Übertragung kann später erfolgen, sobald wieder eine Verbindung besteht. Die Sitzungs-Synchronisierung ist Bestandteil der App und wird bei verfügbarer Verbindung automatisch angestoßen; es gibt derzeit keinen separaten Sync-Ausschalter.
 
 Für den Geräteabgleich werden Google Play-Dienste verwendet. Transport und technische Verarbeitung durch diese Plattformdienste richten sich auch nach deren Bedingungen und deinen Geräteeinstellungen. Die App sendet diese Daten nicht an einen vom Easy-Hof-Entwickler betriebenen Dienst. Informationen zu Google: https://policies.google.com/privacy
 
@@ -75,13 +75,13 @@ There is no Easy Hof user account. Training functions, bundled audio and fonts w
 
 With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started cold session.
 
-Stored session statistics comprise minimum, maximum, and the count and sum of accepted measurements used to calculate the average. A complete sequence of individual timestamped heart-rate readings is not saved in history. Values support your personal training overview, not medical diagnosis, treatment or alerts.
+Stored session statistics comprise minimum, maximum, and the count and sum of accepted measurements used to calculate the average. New recordings also store a heart-rate trace with at most one sample every five seconds. Each sample contains elapsed time from session start and the heart-rate value. Storage is limited to 1,441 samples per session. Missing readings are not filled in. Older sessions and manual entries do not have reconstructed heart-rate traces. Values support your personal training overview, not medical diagnosis, treatment or alerts.
 
 Watches through Android 15 (API 35) use BODY_SENSORS; Android 16 (API 36) and later use READ_HEART_RATE. Permission is optional. You can decline or revoke it in system settings and continue training without heart-rate values. The phone app does not request these sensor permissions.
 
 ## 4. Phone and watch synchronization
 
-Stored sessions, including available heart-rate summaries and deletion markers, are synchronized with Easy Hof on your paired devices through the Google Play services Wear OS Data Layer. Transfer may occur later when connectivity returns. Session synchronization is part of the app and is triggered automatically when a connection is available; there is currently no separate switch to disable sync.
+Stored sessions, including available heart-rate summaries, heart-rate traces and deletion markers, are synchronized with Easy Hof on your paired devices through the Google Play services Wear OS Data Layer. Transfer may occur later when connectivity returns. Session synchronization is part of the app and is triggered automatically when a connection is available; there is currently no separate switch to disable sync.
 
 Device synchronization uses Google Play services. Transport and technical processing by platform services are also governed by their terms and your device settings. The app does not send these records to a service operated by the Easy Hof developer. Google privacy information: https://policies.google.com/privacy
 

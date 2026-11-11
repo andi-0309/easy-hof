@@ -2,10 +2,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_hof/breathing.dart';
 
 void main() {
+  test(
+    'last exhale has an explicit six-second transition before retention',
+    () {
+      final b = BreathingSession(breaths: 30, cycleSeconds: 4)..start();
+      b.advance(3000 + 29 * 4000 + 2000);
+      expect(b.isFinalExhale, isTrue);
+      expect(b.phaseLimit, 6000);
+      b.advance(5999);
+      expect(b.phase, BreathPhase.exhale);
+      b.advance(1);
+      expect(b.phase, BreathPhase.retention);
+      expect(b.phaseMs, 0);
+    },
+  );
+
   test('complete cycles count exhalations before open-ended retention', () {
     final b = BreathingSession(rounds: 2, breaths: 30, cycleSeconds: 6)
       ..start();
-    b.advance(3000 + 30 * 6000);
+    b.advance(3000 + 30 * 6000 + 3000);
     expect(b.phase, BreathPhase.retention);
     expect(b.breath, 30);
     b.advance(45000);
@@ -18,7 +33,7 @@ void main() {
     b.advance(5000);
     expect(b.round, 2);
     expect(b.breath, 1);
-    b.advance(30 * 6000);
+    b.advance(30 * 6000 + 3000);
     b.advance(12000);
     b.breatheAgain();
     b.advance(20000);
@@ -27,7 +42,7 @@ void main() {
   });
   test('paused time and duplicate retention taps are ignored', () {
     final b = BreathingSession(breaths: 1)..start();
-    b.advance(9000);
+    b.advance(12000);
     b.advance(7000);
     b.paused = true;
     b.advance(90000);
@@ -41,11 +56,11 @@ void main() {
   });
   test('stopped and completed sessions never advance', () {
     final b = BreathingSession(rounds: 1, breaths: 1)..start();
-    b.advance(9000);
+    b.advance(12000);
     b.breatheAgain();
     b.advance(20000);
     final total = b.totalMs;
-    b.advance(9000);
+    b.advance(12000);
     expect(b.totalMs, total);
     expect(durationLabel(65000), '1:05');
   });

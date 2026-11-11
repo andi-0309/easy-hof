@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -52,13 +53,6 @@ void main() {
           tester.platformDispatcher.textScaleFactorTestValue = scale;
           await tester.pumpWidget(
             RepaintBoundary(key: boundary, child: const EasyHof()),
-          );
-          await tester.pumpAndSettle();
-          await tester.runAsync(
-            () => precacheImage(
-              const AssetImage('assets/images/nordic-mountains.webp'),
-              tester.element(find.byType(Scaffold).first),
-            ),
           );
           await tester.pumpAndSettle();
           for (final tab in ['Atmen', 'Kälte', 'Verlauf']) {

@@ -4,7 +4,7 @@
   "voices": {
     "de": {
       "model": "de_DE-thorsten-medium",
-      "sha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819"
+      "sha256": "fd270eb3d1ebf91d763f8a0f949b1b1bebdfefaea18c3aaf8577dd34536e064f"
     },
     "en": {
       "model": "en_US-ljspeech-high",
@@ -171,6 +171,28 @@
       "truePeakDb": -2.86,
       "bytes": 26689,
       "sha256": "3e3317da0919a4ff8b8bf06f878c8d052d78dd680a0fe6992c308dc13f85a297"
+    },
+    {
+      "language": "de",
+      "cue": "final_exhale",
+      "text": "Letzten Atemzug locker ausatmen. Nicht pressen.",
+      "durationSeconds": 3.187,
+      "loudnessLufs": -18.63,
+      "truePeakDb": -1.88,
+      "bytes": 38600,
+      "sha256": "6323692b37c704b20907b096ac58957588519f36907f93b50a3289490ae4f061",
+      "encoding": "base64"
+    },
+    {
+      "language": "en",
+      "cue": "final_exhale",
+      "text": "Let your last breath flow out gently. Do not force it.",
+      "durationSeconds": 3.474,
+      "loudnessLufs": -18.69,
+      "truePeakDb": -1.95,
+      "bytes": 42048,
+      "sha256": "92a945a1db9cf192eb9223596fb52a9c390d39da1aad17cc8ae68a9c2e979de7",
+      "encoding": "base64"
     }
   ]
 }

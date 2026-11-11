@@ -7,7 +7,8 @@
     "retention": "Halte nach dem Ausatmen. Atme wieder, sobald du Luft brauchst.",
     "recovery": "Tief einatmen und kurz halten.",
     "rest": "Loslassen. Atme ganz normal weiter.",
-    "done": "Geschafft. Atme entspannt weiter."
+    "done": "Geschafft. Atme entspannt weiter.",
+    "final_exhale": "Letzten Atemzug locker ausatmen. Nicht pressen."
   },
   "en": {
     "welcome": "Welcome to Easy Hof. A moment to breathe.",
@@ -17,6 +18,7 @@
     "retention": "Hold gently after exhaling. Breathe again when you need air.",
     "recovery": "Breathe in deeply, and hold briefly.",
     "rest": "Let go. Breathe normally.",
-    "done": "Well done. Keep breathing naturally."
+    "done": "Well done. Keep breathing naturally.",
+    "final_exhale": "Let your last breath flow out gently. Do not force it."
   }
 }

@@ -40,7 +40,7 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
     height: 1.25,
   );
   return base.copyWith(
-    scaffoldBackgroundColor: scheme.surface,
+    scaffoldBackgroundColor: Colors.transparent,
     textTheme: text.copyWith(
       headlineLarge: heading(text.headlineLarge, 28),
       headlineMedium: heading(text.headlineMedium, 26),
@@ -53,7 +53,7 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
       ),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: scheme.surface,
+      backgroundColor: Colors.transparent,
       scrolledUnderElevation: 0,
       titleTextStyle: TextStyle(
         fontFamily: 'Manrope',
@@ -76,7 +76,16 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(48, 48),
+        minimumSize: Size(48, wear ? 48 : 56),
+        elevation: 5,
+        shadowColor: fjord.withValues(alpha: .45),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: scheme.primary.withValues(alpha: .35),
+            width: 1.5,
+          ),
+        ),
         textStyle: const TextStyle(
           fontFamily: 'Inter',
           fontSize: 16,
@@ -84,6 +93,27 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        minimumSize: Size(48, wear ? 48 : 56),
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        elevation: 4,
+        shadowColor: fjord.withValues(alpha: .35),
+        side: BorderSide(
+          color: scheme.primary.withValues(alpha: .35),
+          width: 1.5,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: EdgeInsets.symmetric(horizontal: wear ? 12 : 20, vertical: 14),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surface.withValues(alpha: .85),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.all(16),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: scheme.surface,
@@ -107,23 +137,181 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
   );
 }
 
+/// Resolution-independent ridgelines appear behind every route, including Wear OS.
+class NordicBackdrop extends StatelessWidget {
+  const NordicBackdrop({super.key, required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: Theme.of(context).colorScheme.surface,
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: ExcludeSemantics(
+            child: CustomPaint(
+              painter: MountainPainter(
+                dark: Theme.of(context).brightness == Brightness.dark,
+                subtle: true,
+              ),
+            ),
+          ),
+        ),
+        child,
+      ],
+    ),
+  );
+}
+
+class MountainPainter extends CustomPainter {
+  const MountainPainter({
+    required this.dark,
+    this.subtle = false,
+    this.transparentSky = false,
+  });
+  final bool dark;
+  final bool subtle;
+  final bool transparentSky;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final sky = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: dark
+            ? [const Color(0xFF102F3A), const Color(0xFF081821)]
+            : [const Color(0xFFE4F1F1), const Color(0xFFF7F6EF)],
+      ).createShader(Offset.zero & size);
+    if (!subtle && !transparentSky) canvas.drawRect(Offset.zero & size, sky);
+    canvas.drawCircle(
+      Offset(w * .79, h * (subtle ? .16 : .24)),
+      w * (subtle ? .13 : .09),
+      Paint()..color = sun.withValues(alpha: subtle ? (dark ? .06 : .10) : .9),
+    );
+    final top = subtle ? .69 : .22;
+    for (var layer = 0; layer < 3; layer++) {
+      final y = h * (top + layer * .12);
+      final path = Path()
+        ..moveTo(0, h)
+        ..lineTo(0, y + h * .23)
+        ..lineTo(w * .16, y + h * .10)
+        ..lineTo(w * .29, y + h * .20)
+        ..lineTo(w * .52, y)
+        ..lineTo(w * .70, y + h * .20)
+        ..lineTo(w * .86, y + h * .07)
+        ..lineTo(w, y + h * .24)
+        ..lineTo(w, h)
+        ..close();
+      canvas.drawShadow(
+        path,
+        fjord.withValues(alpha: subtle ? .08 : .3),
+        6,
+        false,
+      );
+      final colors = dark
+          ? [
+              const Color(0xFF427381),
+              const Color(0xFF245461),
+              const Color(0xFF102F3A),
+            ]
+          : [
+              const Color(0xFFA5CDD2),
+              const Color(0xFF639DA7),
+              const Color(0xFF255C6B),
+            ];
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = colors[layer].withValues(
+            alpha: subtle ? (dark ? .18 : .13) : 1,
+          ),
+      );
+      if (layer == 0 && !subtle) {
+        final snow = Path()
+          ..moveTo(w * .52, y)
+          ..lineTo(w * .44, y + h * .07)
+          ..lineTo(w * .51, y + h * .05)
+          ..lineTo(w * .56, y + h * .09)
+          ..lineTo(w * .59, y + h * .08)
+          ..close();
+        canvas.drawPath(snow, Paint()..color = const Color(0xFFE8F3F4));
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(MountainPainter old) =>
+      old.dark != dark ||
+      old.subtle != subtle ||
+      old.transparentSky != transparentSky;
+}
+
 class NordicLandscape extends StatelessWidget {
-  const NordicLandscape({super.key});
+  const NordicLandscape({super.key, this.height = 112});
+  final double height;
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Image.asset(
-          'assets/images/nordic-mountains.webp',
-          height: 140,
-          width: double.infinity,
-          fit: BoxFit.cover,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: SizedBox(
+        height: height,
+        width: double.infinity,
+        child: CustomPaint(
+          painter: MountainPainter(
+            dark: Theme.of(context).brightness == Brightness.dark,
+            transparentSky: true,
+          ),
         ),
       ),
     ),
   );
+}
+
+class NordicCard extends StatelessWidget {
+  const NordicCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+  });
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: dark
+              ? [const Color(0xFF244957), const Color(0xFF142F3C)]
+              : [Colors.white.withValues(alpha: .97), const Color(0xFFE4F0F0)],
+        ),
+        border: Border.all(
+          color: (dark ? const Color(0xFF94D7DF) : Colors.white).withValues(
+            alpha: .55,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: fjord.withValues(alpha: dark ? .35 : .13),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: (dark ? Colors.black : const Color(0xFFACCDD0)).withValues(
+              alpha: .25,
+            ),
+            offset: const Offset(0, 3),
+            blurRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
 }
 
 class SunButton extends StatefulWidget {
@@ -132,10 +320,14 @@ class SunButton extends StatefulWidget {
     required this.onPressed,
     required this.label,
     this.icon = Icons.play_arrow_rounded,
+    this.secondary = false,
+    this.large = false,
   });
   final VoidCallback? onPressed;
   final String label;
   final IconData icon;
+  final bool secondary;
+  final bool large;
   @override
   State<SunButton> createState() => _SunButtonState();
 }
@@ -159,23 +351,34 @@ class _SunButtonState extends State<SunButton> {
             borderRadius: BorderRadius.circular(32),
             gradient: disabled
                 ? null
-                : const LinearGradient(
+                : LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xFFFFC584), sun],
+                    colors: widget.secondary
+                        ? [const Color(0xFFB1E3E4), const Color(0xFF70BAC5)]
+                        : [const Color(0xFFFFD49A), sun],
                   ),
             color: disabled ? const Color(0xFFD3D9D9) : null,
             boxShadow: disabled
                 ? []
                 : [
                     BoxShadow(
-                      color: const Color(0xFFA95729),
+                      color: widget.secondary
+                          ? const Color(0xFF346B79)
+                          : const Color(0xFFA95729),
                       offset: Offset(0, down ? 1 : 4),
                     ),
                   ],
           ),
           child: FilledButton.icon(
             style: FilledButton.styleFrom(
+              minimumSize: Size(48, widget.large ? 76 : 56),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              textStyle: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: widget.large ? 21 : 16,
+                fontWeight: FontWeight.w700,
+              ),
               backgroundColor: Colors.transparent,
               disabledBackgroundColor: Colors.transparent,
               foregroundColor: fjord,

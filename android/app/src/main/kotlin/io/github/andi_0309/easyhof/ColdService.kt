@@ -104,6 +104,8 @@ class ColdService : Service(), SensorEventListener {
         val now = SystemClock.elapsedRealtime()
         if (now - lastSample < 1000) return
         lastSample = now; bpm = rate; status = "ok"
+        record.put("durationMs", now - startElapsed)
+        HeartRateTrace.append(record, now - startElapsed, rate)
         record.put("hrCount", record.optInt("hrCount") + 1).put("hrSum", record.optLong("hrSum") + rate)
         record.put("hrMin", minOf(record.optInt("hrMin", rate), rate)).put("hrMax", maxOf(record.optInt("hrMax", rate), rate))
     }

@@ -50,4 +50,21 @@ class SessionStoreTest {
         SessionSync.importItem(context, "/easyhof/sessions/x", "not json")
         assertEquals(0, SessionStore.all(context).size)
     }
+    @Test fun traceIsBoundedAndSurvivesPersistenceAndSync() {
+        val session = record(20).put("durationMs", 7200000)
+        for (ms in 0L..7200000L step 1000) HeartRateTrace.append(session, ms, 80)
+        assertEquals(1441, session.getJSONArray("hrSamples").length())
+        assertTrue(session.toString().length < 90000)
+        assertTrue(SessionStore.valid(session))
+        SessionSync.importItem(context, "/easyhof/sessions/same-id", session.toString())
+        assertEquals(1441, SessionStore.all(context).single().getJSONArray("hrSamples").length())
+        SessionStore.delete(context, "same-id")
+        assertFalse(SessionStore.all(context).single().has("hrSamples"))
+    }
+    @Test fun invalidTraceSamplesAreRejected() {
+        assertFalse(SessionStore.valid(record(1).put("hrSamples", org.json.JSONArray("[[0,80],[5000,999]]"))))
+        assertFalse(SessionStore.valid(record(1).put("hrSamples", org.json.JSONArray("[[5000,80],[0,85]]"))))
+        assertFalse(SessionStore.valid(record(1).put("hrSamples", "invalid")))
+        assertTrue(SessionStore.valid(record(1)))
+    }
 }

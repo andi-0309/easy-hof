@@ -27,9 +27,12 @@ class BreathingSession {
     phase = BreathPhase.countdown;
   }
 
+  bool get isFinalExhale => phase == BreathPhase.exhale && breath == breaths;
+
   int? get phaseLimit => switch (phase) {
     BreathPhase.countdown => 3000,
-    BreathPhase.inhale || BreathPhase.exhale => cycleSeconds * 500,
+    BreathPhase.inhale => cycleSeconds * 500,
+    BreathPhase.exhale => isFinalExhale ? 6000 : cycleSeconds * 500,
     BreathPhase.recovery => 15000,
     BreathPhase.rest => 5000,
     _ => null,

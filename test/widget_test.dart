@@ -30,7 +30,7 @@ void main() {
     expect(find.text('Temperature'), findsOneWidget);
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    expect(find.text('0 sessions'), findsOneWidget);
+    expect(find.textContaining('0 sessions'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.tune_rounded));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('DE'));

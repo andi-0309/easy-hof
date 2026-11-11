@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'platform.dart';
+import 'nordic.dart';
 
 /// A completed session uses the same durable storage and sync as timed sessions.
 class ManualColdSession extends StatefulWidget {
@@ -23,8 +24,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
   final minutes = TextEditingController(text: '2');
   final seconds = TextEditingController(text: '0');
   final temperature = TextEditingController();
-  late final TextEditingController date;
-  late final TextEditingController time;
+  DateTime finished = DateTime.now();
   late String kind;
   final id =
       'manual-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}';
@@ -37,28 +37,46 @@ class _ManualColdSessionState extends State<ManualColdSession> {
     super.initState();
     kind = widget.initialKind;
     final now = DateTime.now();
-    date = TextEditingController(text: dateText(now));
-    time = TextEditingController(text: timeText(now));
+    finished = DateTime(now.year, now.month, now.day, now.hour, now.minute);
   }
 
-  String dateText(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  String timeText(DateTime d) =>
-      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-  DateTime? finishedAt() {
-    final match = RegExp(
-      r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$',
-    ).firstMatch('${date.text.trim()} ${time.text.trim()}');
-    if (match == null) return null;
-    final parts = [for (var i = 1; i <= 5; i++) int.parse(match.group(i)!)];
-    final d = DateTime(parts[0], parts[1], parts[2], parts[3], parts[4]);
-    if (d.year < 1970 ||
-        dateText(d) != date.text.trim() ||
-        timeText(d) != time.text.trim()) {
-      return null;
+  Future<void> pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: finished.isAfter(now) ? now : finished,
+      firstDate: DateTime(1970),
+      lastDate: now,
+    );
+    if (picked != null && mounted) {
+      setState(
+        () => finished = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          finished.hour,
+          finished.minute,
+        ),
+      );
     }
-    return d;
+  }
+
+  Future<void> pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(finished),
+    );
+    if (picked != null && mounted) {
+      setState(
+        () => finished = DateTime(
+          finished.year,
+          finished.month,
+          finished.day,
+          picked.hour,
+          picked.minute,
+        ),
+      );
+    }
   }
 
   int get durationSeconds =>
@@ -67,8 +85,8 @@ class _ManualColdSessionState extends State<ManualColdSession> {
 
   Future<void> save() async {
     if (saving || !form.currentState!.validate()) return;
-    final end = finishedAt();
-    if (end == null || end.isAfter(DateTime.now())) {
+    final end = finished;
+    if (end.isAfter(DateTime.now())) {
       setState(
         () => error = t(
           'Bitte einen gültigen Zeitpunkt in der Vergangenheit eingeben.',
@@ -121,7 +139,7 @@ class _ManualColdSessionState extends State<ManualColdSession> {
 
   @override
   void dispose() {
-    for (final c in [minutes, seconds, temperature, date, time]) {
+    for (final c in [minutes, seconds, temperature]) {
       c.dispose();
     }
     super.dispose();
@@ -196,55 +214,31 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                           : (value) => setState(() => kind = value!),
                     ),
                     gap(),
-                    TextFormField(
+                    Text(t('Beendet am', 'Finished on')),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
                       key: const Key('manual-date'),
-                      controller: date,
-                      keyboardType: TextInputType.datetime,
-                      enabled: !saving,
-                      decoration: InputDecoration(
-                        labelText: t('Beendet am', 'Finished on'),
-                        helperText: t('JJJJ-MM-TT', 'YYYY-MM-DD'),
-                        suffixIcon: compact
-                            ? null
-                            : IconButton(
-                                tooltip: t('Datum auswählen', 'Choose date'),
-                                icon: const Icon(Icons.calendar_today_outlined),
-                                onPressed: saving
-                                    ? null
-                                    : () async {
-                                        final now = DateTime.now();
-                                        final selected = await showDatePicker(
-                                          context: context,
-                                          initialDate:
-                                              finishedAt() != null &&
-                                                  !finishedAt()!.isAfter(now)
-                                              ? finishedAt()!
-                                              : now,
-                                          firstDate: DateTime(1970),
-                                          lastDate: now,
-                                        );
-                                        if (selected != null) {
-                                          date.text = dateText(selected);
-                                        }
-                                      },
-                              ),
+                      onPressed: saving ? null : pickDate,
+                      icon: const Icon(Icons.calendar_today_rounded),
+                      label: Text(
+                        MaterialLocalizations.of(
+                          context,
+                        ).formatMediumDate(finished),
                       ),
-                      validator: (_) => finishedAt() == null
-                          ? t(
-                              'Gültiges Datum und Uhrzeit eingeben.',
-                              'Enter a valid date and time.',
-                            )
-                          : null,
                     ),
                     gap(),
-                    TextFormField(
+                    Text(t('Uhrzeit', 'Time')),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
                       key: const Key('manual-time'),
-                      controller: time,
-                      enabled: !saving,
-                      keyboardType: TextInputType.datetime,
-                      decoration: InputDecoration(
-                        labelText: t('Uhrzeit', 'Time'),
-                        helperText: 'HH:mm',
+                      onPressed: saving ? null : pickTime,
+                      icon: const Icon(Icons.schedule_rounded),
+                      label: Text(
+                        MaterialLocalizations.of(context).formatTimeOfDay(
+                          TimeOfDay.fromDateTime(finished),
+                          alwaysUse24HourFormat:
+                              MediaQuery.alwaysUse24HourFormatOf(context),
+                        ),
                       ),
                     ),
                     gap(),
@@ -318,14 +312,12 @@ class _ManualColdSessionState extends State<ManualColdSession> {
                       ),
                     ],
                     gap(),
-                    FilledButton.icon(
+                    SunButton(
                       onPressed: saving ? null : save,
-                      icon: const Icon(Icons.check_rounded),
-                      label: Text(
-                        saving
-                            ? t('Speichern …', 'Saving …')
-                            : t('Speichern', 'Save'),
-                      ),
+                      icon: Icons.check_rounded,
+                      label: saving
+                          ? t('Speichern …', 'Saving …')
+                          : t('Speichern', 'Save'),
                     ),
                   ],
                 ),
