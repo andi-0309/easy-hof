@@ -112,11 +112,20 @@ class _TrainingHistoryState extends State<TrainingHistory> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (!compact)
+          Text(
+            t('Deine Routine im Blick', 'Your rhythm at a glance'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         Text(
-          t('Deine Routine im Blick', 'Your rhythm at a glance'),
-          style: Theme.of(context).textTheme.titleMedium,
+          compact
+              ? t('$streak Tage in Folge', '$streak-day streak')
+              : t(
+                  '$streak aktive Tage in Folge',
+                  '$streak active days in a row',
+                ),
+          style: compact ? const TextStyle(fontSize: 12) : null,
         ),
-        Text(t('$streak aktive Tage in Folge', '$streak active days in a row')),
         const SizedBox(height: 12),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,6 +395,7 @@ class _TrainingDayState extends State<TrainingDay> {
     final compact = MediaQuery.sizeOf(context).width < 260;
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: compact ? 44 : 56,
         title: Text(
           MaterialLocalizations.of(context).formatShortDate(widget.date),
           style: TextStyle(fontSize: compact ? 15 : 20),
@@ -536,6 +546,7 @@ class _HeartRateChartState extends State<HeartRateChart> {
         .map((p) => Offset((p[0] as num).toDouble(), (p[1] as num).toDouble()))
         .toList();
     final de = widget.language == 'de';
+    final compact = MediaQuery.sizeOf(context).width < 260;
     if (points.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -561,12 +572,17 @@ class _HeartRateChartState extends State<HeartRateChart> {
       children: [
         const SizedBox(height: 16),
         Text(
-          de ? 'Pulsverlauf' : 'Heart-rate trace',
-          style: const TextStyle(fontWeight: FontWeight.w700),
+          de ? 'Pulsverlauf' : (compact ? 'Pulse trace' : 'Heart-rate trace'),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: compact ? 12 : 16,
+          ),
         ),
         Text(
           index == null
-              ? '$minBpm–$maxBpm bpm · ${de ? 'Skala' : 'scale'}'
+              ? (compact
+                    ? '$minBpm–$maxBpm bpm'
+                    : '$minBpm–$maxBpm bpm · ${de ? 'Skala' : 'scale'}')
               : '${durationLabel(points[index].dx.toInt())} · ${points[index].dy.round()} bpm',
         ),
         const SizedBox(height: 8),
@@ -588,7 +604,7 @@ class _HeartRateChartState extends State<HeartRateChart> {
                 setState(() => selected = nearest);
               },
               child: SizedBox(
-                height: 130,
+                height: compact ? 80 : 130,
                 width: double.infinity,
                 child: CustomPaint(
                   painter: _HeartPainter(

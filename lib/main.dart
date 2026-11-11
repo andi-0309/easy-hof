@@ -429,48 +429,42 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
             child: ListView(
               padding: EdgeInsets.fromLTRB(
                 isWear ? 18 : 24,
-                isWear ? 28 : 16,
+                isWear ? 18 : 16,
                 isWear ? 18 : 24,
                 isWear ? 40 : 24,
               ),
               children: [
-                if (isWear) ...[
-                  Center(
-                    child: Text(
-                      'EASY HOF',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                if (isWear)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      for (final i in [1, 2, 3])
-                        IconButton(
-                          visualDensity: VisualDensity.compact,
-                          tooltip: [
-                            t('Kälte', 'Cold'),
-                            t('Verlauf', 'History'),
-                            t('Einstellungen', 'Settings'),
-                          ][i - 1],
-                          onPressed: () => setState(() => tab = i),
-                          icon: Icon(
-                            [Icons.ac_unit, Icons.history, Icons.settings][i -
-                                1],
-                            color: tab == i
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          ),
+                      IconButton(
+                        tooltip: t('Kälte', 'Cold'),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => setState(() => tab = 1),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                      ),
+                      Expanded(
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
+                      ),
+                      IconButton(
+                        tooltip: tab == 2
+                            ? t('Einstellungen', 'Settings')
+                            : t('Verlauf', 'History'),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => setState(() => tab = tab == 2 ? 3 : 2),
+                        icon: Icon(
+                          tab == 2 ? Icons.settings : Icons.history,
+                          size: 20,
+                        ),
+                      ),
                     ],
-                  ),
-                ],
-                Text(
-                  title,
-                  style: isWear
-                      ? Theme.of(context).textTheme.titleLarge
-                      : Theme.of(context).textTheme.headlineLarge,
-                ),
+                  )
+                else
+                  Text(title, style: Theme.of(context).textTheme.headlineLarge),
                 const SizedBox(height: 8),
                 if (error != null)
                   Card(
@@ -1258,7 +1252,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                                 ? '${b.breath} / ${b.breaths}'
                                 : countdown,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 54,
                               fontFamily: 'Manrope',
                               fontWeight: FontWeight.w700,

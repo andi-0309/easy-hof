@@ -31,7 +31,10 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
     colorScheme: scheme,
     fontFamily: 'Inter',
   );
-  final text = base.textTheme;
+  final text = base.textTheme.apply(
+    bodyColor: scheme.onSurface,
+    displayColor: scheme.onSurface,
+  );
   TextStyle heading(TextStyle? style, double size) => style!.copyWith(
     fontFamily: 'Manrope',
     fontWeight: FontWeight.w600,

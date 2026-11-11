@@ -133,7 +133,7 @@ void main() {
     expect(find.byType(TrainingDay), findsOneWidget);
     await screenshot(tester, key, isWear ? 'wear-day' : 'phone-day');
     await tester.scrollUntilVisible(
-      find.text('Heart-rate trace'),
+      find.text(isWear ? 'Pulse trace' : 'Heart-rate trace'),
       100,
       scrollable: find.byType(Scrollable).first,
     );
@@ -176,6 +176,7 @@ void main() {
       await screenshot(tester, key, 'phone-retention');
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 300));
       await screenshot(tester, key, 'phone-retention-dark');
