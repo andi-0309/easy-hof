@@ -26,6 +26,7 @@ void main() {
     bool request = false,
     List<MethodCall>? calls,
   }) {
+    var activeState = active;
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -33,6 +34,8 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(Device.channel, (call) async {
           calls?.add(call);
+          if (call.method == 'startCold') activeState = true;
+          if (call.method == 'stopCold') activeState = false;
           if (call.method == 'settings') return jsonEncode({'language': 'de'});
           if (call.method == 'snapshot') {
             return jsonEncode({
@@ -43,7 +46,7 @@ void main() {
                   'sentAt': DateTime.now().millisecondsSinceEpoch,
                   'ended': false,
                 },
-              if (active)
+              if (activeState)
                 'active': {
                   'kind': 'bath',
                   'durationMs': 65000,
@@ -60,12 +63,14 @@ void main() {
   testWidgets('round shortcuts lead to separate time and temperature steps', (
     tester,
   ) async {
-    setup(tester);
+    final calls = <MethodCall>[];
+    setup(tester, calls: calls);
     await fonts(tester);
     final key = GlobalKey();
     await tester.pumpWidget(RepaintBoundary(key: key, child: const EasyHof()));
     await tester.pumpAndSettle();
     expect(find.text('Zielzeit'), findsNothing);
+    expect(find.text('Atmen · Puls').hitTestable(), findsOneWidget);
     expect(find.byIcon(Icons.settings), findsNothing);
     expect(find.byIcon(Icons.history), findsNothing);
     await screenshot(tester, key, 'wear-shortcuts');
@@ -83,6 +88,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('15.0 °C'), findsOneWidget);
     await screenshot(tester, key, 'wear-temperature');
+    await tester.tap(find.text('Starten'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Verstanden'));
+    await tester.pumpAndSettle();
+    final start = calls.singleWhere((c) => c.method == 'startCold');
+    expect((start.arguments as Map)['kind'], 'shower');
+    expect((start.arguments as Map)['goalSeconds'], 30);
+    expect((start.arguments as Map)['temperature'], 15.0);
+    await tester.tap(find.text('Beenden'));
+    await tester.pumpAndSettle();
+    expect(find.text('Atmen · Puls').hitTestable(), findsOneWidget);
+    expect(find.text('Zielzeit'), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   }, skip: !isWear);

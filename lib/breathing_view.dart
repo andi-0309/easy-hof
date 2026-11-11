@@ -136,7 +136,8 @@ class BreathingPage extends StatelessWidget {
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: box.maxHeight),
-                  child: Center(
+                  child: Align(
+                    alignment: Alignment.topCenter,
                     child: SizedBox(
                       width: width,
                       child: Padding(

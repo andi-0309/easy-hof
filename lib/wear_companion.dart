@@ -30,16 +30,27 @@ class _WearCompanionState extends State<WearCompanion> {
   String page = 'home', kind = 'shower';
   int seconds = 0;
   double? temperature;
+  @override
+  void didUpdateWidget(covariant WearCompanion oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((oldWidget.data['active'] != null && widget.data['active'] == null) ||
+        (oldWidget.data['watchPulse'] != null &&
+            widget.data['watchPulse'] == null)) {
+      page = 'home';
+    }
+  }
+
   String t(String de, String en) => widget.language == 'de' ? de : en;
   Widget button(
     String label,
     VoidCallback onTap, {
     NordicTone tone = NordicTone.ice,
+    bool compact = false,
   }) => NordicButton(
     height: 44,
-    fontSize: 14,
+    fontSize: compact ? 13 : 14,
     radius: 22,
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    padding: EdgeInsets.symmetric(horizontal: compact ? 3 : 8, vertical: 8),
     tone: tone,
     onPressed: widget.busy ? null : onTap,
     child: Text(label, textAlign: TextAlign.center),
@@ -265,25 +276,35 @@ class _WearCompanionState extends State<WearCompanion> {
             ),
             gap(),
           ],
-          button(
-            t('Dusche', 'Shower'),
-            () => setState(() {
-              kind = 'shower';
-              seconds = 0;
-              temperature = null;
-              page = 'time';
-            }),
-            tone: NordicTone.sun,
-          ),
-          gap(),
-          button(
-            t('Eisbad', 'Ice bath'),
-            () => setState(() {
-              kind = 'bath';
-              seconds = 0;
-              temperature = null;
-              page = 'time';
-            }),
+          Row(
+            children: [
+              Expanded(
+                child: button(
+                  t('Dusche', 'Shower'),
+                  () => setState(() {
+                    kind = 'shower';
+                    seconds = 0;
+                    temperature = null;
+                    page = 'time';
+                  }),
+                  tone: NordicTone.sun,
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: button(
+                  t('Eisbad', 'Ice bath'),
+                  () => setState(() {
+                    kind = 'bath';
+                    seconds = 0;
+                    temperature = null;
+                    page = 'time';
+                  }),
+                  compact: true,
+                ),
+              ),
+            ],
           ),
           gap(),
           button(
