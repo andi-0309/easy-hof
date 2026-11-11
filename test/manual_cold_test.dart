@@ -12,11 +12,16 @@ Future<void> reveal(
   Finder target,
   double delta, {
   Finder? scrollable,
-}) => tester.scrollUntilVisible(
-  target,
-  delta,
-  scrollable: scrollable ?? find.byType(Scrollable).first,
-);
+}) async {
+  await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(
+    target,
+    delta,
+    scrollable: scrollable ?? find.byType(Scrollable).first,
+  );
+  await Scrollable.ensureVisible(tester.element(target), alignment: 0.5);
+  await tester.pumpAndSettle();
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +124,7 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(find.text('Could not save. Please try again.'), findsOneWidget);
+      await reveal(tester, find.text('Save'), 200);
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(saved, hasLength(2));
