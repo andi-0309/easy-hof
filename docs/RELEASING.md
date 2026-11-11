@@ -58,7 +58,7 @@ account. The account must opt in to the corresponding test. Both form factors
 need available releases before testing the store installation flow.
 
 CI validates bundles with pinned Google bundletool 1.18.2, checks the package,
-version codes and Wear standalone feature, and verifies the JAR signature and
+version codes and Wear companion flag, and verifies the JAR signature and
 certificate against the configured private release keystore. Neither AAB contains
 an embedded APK or the removed wireless-ADB installer's native TLS libraries.
 These checks do not replace Google Play's policy review or physical device tests.
@@ -130,7 +130,7 @@ highest published versions. For production signing, set `KEYSTORE_PATH`,
 `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` in the local environment.
 
 Before a public release, validate installation through Google Play on a physical
-watch, heart-rate permissions, standalone cold sessions and delayed phone sync.
+watch, heart-rate permissions, companion cold recording and phone breathing pulse and delayed phone sync.
 
 ### Veröffentlichung über Release-Notizen starten
 

@@ -36,6 +36,7 @@ object SessionStore {
     }
     @Synchronized fun merge(context: Context, incoming: JSONObject): Boolean {
         if (!valid(incoming)) return false
+        if (incoming.optBoolean("deleted")) BreathingPulse.delete(context, incoming.optString("id"))
         val records = all(context).toMutableList()
         val index = records.indexOfFirst { it.optString("id") == incoming.optString("id") }
         if (index >= 0) {
@@ -53,6 +54,7 @@ object SessionStore {
         record.put("id", record.optString("id").ifBlank { UUID.randomUUID().toString() })
         record.put("updatedAt", System.currentTimeMillis())
         record.put("source", if (context.packageManager.hasSystemFeature("android.hardware.type.watch")) "wear" else "phone")
+        BreathingPulse.attach(context, record)
         require(valid(record)) { "Invalid session" }
         merge(context, record)
         SessionSync.publish(context, record)
@@ -89,6 +91,11 @@ object SessionStore {
         val sessions = all(context).filter { !it.optBoolean("deleted") }.sortedByDescending { it.optString("startedAt") }
         return JSONObject().put("sessions", JSONArray(sessions))
             .put("active", ColdService.instance?.snapshot() ?: JSONObject.NULL)
+            .put("phoneAppAvailable", if (prefs(context).contains("phoneAppAvailable")) prefs(context).getBoolean("phoneAppAvailable", false) else JSONObject.NULL)
+            .put("companionSettings", setting(context).takeIf { it.isNotBlank() }?.let { JSONObject(it) } ?: JSONObject.NULL)
+            .put("breathingRequest", BreathingPulse.request(context) ?: JSONObject.NULL)
+            .put("watchPulse", BreathingPulseService.instance?.snapshot() ?: JSONObject.NULL)
+            .put("breathingPulse", BreathingPulse.latest(context) ?: JSONObject.NULL)
             .put("syncStatus", prefs(context).getString("syncStatus", "ready"))
             .put("lastReceived", prefs(context).getString("lastReceived", null))
     }

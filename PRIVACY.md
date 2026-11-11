@@ -11,19 +11,21 @@ GitHub-Anfragen sind öffentlich und benötigen ein GitHub-Konto. Für eine Anfr
 
 ## 2. Trainingsdaten auf deinen Geräten
 
-Easy Hof verarbeitet die von dir gestarteten Atem- und Kältesitzungen sowie manuell nachgetragene Duschen und Eisbäder. Manuelle Einträge enthalten keine Pulsmessungen. Dazu gehören Art, Startzeit, Dauer, optionale Zielzeit und manuell eingegebene Wassertemperatur. Bei Atemübungen werden außerdem Runden, Atemzüge, Tempo und Atemhaltezeiten gespeichert. Technische Sitzungskennungen, Änderungszeitpunkte und die Herkunft Smartphone/Uhr dienen dem Abgleich der Einträge. Sprache, Audio, Vibration und Übungsparameter werden als lokale Einstellungen gespeichert.
+Easy Hof verarbeitet die von dir gestarteten Atem- und Kältesitzungen sowie manuell nachgetragene Duschen und Eisbäder. Manuelle Einträge enthalten keine Pulsmessungen. Dazu gehören Art, Startzeit, Dauer, optionale Zielzeit und manuell eingegebene Wassertemperatur. Bei Atemübungen werden außerdem Runden, Atemzüge, Tempo und Atemhaltezeiten gespeichert. Technische Sitzungskennungen, Änderungszeitpunkte und die Herkunft Smartphone/Uhr dienen dem Abgleich der Einträge. Sprache, Audio, Vibration und Übungsparameter werden als Einstellungen gespeichert und vom Telefon an die gekoppelte Uhr übertragen.
 
 Es gibt kein Easy-Hof-Benutzerkonto. Die Trainingsfunktionen und eingebundenen Audiodateien und Schriften funktionieren offline. Der Entwickler betreibt keinen Server, der deine Trainings- oder Herzfrequenzdaten empfängt.
 
 ## 3. Optionale Herzfrequenz auf der Uhr
 
-Nach deiner Freigabe liest die Wear-OS-App während eines von dir aktiv gestarteten Kältetrainings den Herzfrequenzsensor der Uhr aus. Der aktuelle Puls wird während der Sitzung angezeigt. Ein Vordergrunddienst hält das laufende Training aufrecht, auch wenn du die App-Ansicht verlässt. Die Sensorabfrage endet mit der Sitzung oder dem Ende des Trainingsdienstes. Es findet keine fortlaufende Pulserfassung außerhalb einer gestarteten Kältesitzung statt.
+Nach deiner Freigabe liest die Wear-OS-App während eines von dir aktiv gestarteten Kältetrainings oder nach deiner Bestätigung auf der Uhr für ein Atemtraining am gekoppelten Telefon den Herzfrequenzsensor der Uhr aus. Der aktuelle Puls wird während der Sitzung angezeigt. Ein Vordergrunddienst hält das laufende Training aufrecht, auch wenn du die App-Ansicht verlässt. Die Sensorabfrage endet mit der Sitzung oder dem Ende des Trainingsdienstes. Es findet keine fortlaufende Pulserfassung außerhalb eines gestarteten Trainings statt.
 
 Gespeichert werden statistische Sitzungswerte: Minimum, Maximum sowie Anzahl und Summe der berücksichtigten Messwerte zur Berechnung des Durchschnitts. Ab Version 1.2.0 wird bei neuen Aufzeichnungen zusätzlich ein Pulsverlauf mit höchstens einem Messpunkt je fünf Sekunden gespeichert. Jeder Messpunkt enthält die seit Sitzungsbeginn verstrichene Zeit und den Pulswert. Maximal 1.441 Punkte pro Sitzung halten Speicherung und Geräteabgleich begrenzt. Fehlende Messungen werden nicht ergänzt. Ältere Sitzungen und manuelle Einträge haben keinen nachträglich rekonstruierten Pulsverlauf. Die Werte dienen deiner persönlichen Trainingsübersicht, nicht der medizinischen Diagnose, Behandlung oder Alarmierung.
 
 Auf Uhren bis Android 15 (API 35) wird BODY_SENSORS verwendet; ab Android 16 (API 36) READ_HEART_RATE. Die Berechtigung ist optional. Du kannst sie verweigern oder in den Systemeinstellungen widerrufen und das Training ohne Pulswerte fortsetzen. Auf dem Smartphone fordert Easy Hof diese Sensorberechtigungen nicht an.
 
 ## 4. Synchronisierung zwischen Smartphone und Uhr
+
+Beim Atemtraining überträgt das Telefon Sitzungskennung, Startzeit, aktive Übungszeit, Pause-/Endestatus, Sprache und Übertragungszeitpunkt an die Uhr. Nach deiner Bestätigung sendet die Uhr aktuelle Pulswerte, Pulsverlauf und Zusammenfassung an das Telefon. Messpunkte werden auf die aktive Übungszeit bezogen; Pausen und Verbindungslücken werden nicht mit erfundenen Werten gefüllt. Nach 90 Sekunden ohne Aktualisierung vom Telefon endet die Sensoraufnahme. Diese Informationen werden nur zwischen deinen gekoppelten Geräten verarbeitet.
 
 Gespeicherte Sitzungen einschließlich vorhandener Herzfrequenz-Zusammenfassungen, Pulsverläufe und Löschmarkierungen werden über die Wear OS Data Layer der Google Play-Dienste mit der Easy-Hof-App auf deinen gekoppelten Geräten abgeglichen. Eine Übertragung kann später erfolgen, sobald wieder eine Verbindung besteht. Die Sitzungs-Synchronisierung ist Bestandteil der App und wird bei verfügbarer Verbindung automatisch angestoßen; es gibt derzeit keinen separaten Sync-Ausschalter.
 
@@ -67,19 +69,21 @@ GitHub issues are public and require a GitHub account. Health information is not
 
 ## 2. Training data on your devices
 
-Easy Hof processes the breathing and cold sessions you start, as well as showers and ice baths you add manually. Manual entries do not contain heart-rate readings. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as local settings.
+Easy Hof processes the breathing and cold sessions you start, as well as showers and ice baths you add manually. Manual entries do not contain heart-rate readings. This includes session type, start time, duration, optional target time and manually entered water temperature. Breathing sessions also store rounds, breaths, pace and breath-hold durations. Technical session identifiers, update timestamps and phone/watch origin support synchronization. Language, audio, haptics and exercise parameters are saved as settings and transferred from your phone to your paired watch.
 
 There is no Easy Hof user account. Training functions, bundled audio and fonts work offline. The developer does not operate a server that receives your training or heart-rate data.
 
 ## 3. Optional heart rate on the watch
 
-With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started cold session.
+With your permission, the Wear OS app reads the watch heart-rate sensor during a cold session you actively start, or after you confirm on the watch for a breathing session on your paired phone. The current heart rate is displayed during the session. A foreground service keeps the active training running when you leave the app view. Sensor access ends with the session or training service. There is no ongoing heart-rate collection outside an actively started training session.
 
 Stored session statistics comprise minimum, maximum, and the count and sum of accepted measurements used to calculate the average. From version 1.2.0, new recordings also store a heart-rate trace with at most one sample every five seconds. Each sample contains elapsed time from session start and the heart-rate value. Storage is limited to 1,441 samples per session. Missing readings are not filled in. Older sessions and manual entries do not have reconstructed heart-rate traces. Values support your personal training overview, not medical diagnosis, treatment or alerts.
 
 Watches through Android 15 (API 35) use BODY_SENSORS; Android 16 (API 36) and later use READ_HEART_RATE. Permission is optional. You can decline or revoke it in system settings and continue training without heart-rate values. The phone app does not request these sensor permissions.
 
 ## 4. Phone and watch synchronization
+
+For breathing, your phone sends the session identifier, start time, active exercise time, pause/end status, language and transmission timestamp to your watch. After your confirmation, the watch sends current heart rate, trace and summary to your phone. Samples follow the active exercise timeline; pauses and connection gaps are not filled with invented readings. Sensor recording ends after 90 seconds without phone updates. These details are processed only between your paired devices.
 
 Stored sessions, including available heart-rate summaries, heart-rate traces and deletion markers, are synchronized with Easy Hof on your paired devices through the Google Play services Wear OS Data Layer. Transfer may occur later when connectivity returns. Session synchronization is part of the app and is triggered automatically when a connection is available; there is currently no separate switch to disable sync.
 

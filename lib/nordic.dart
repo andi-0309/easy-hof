@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 const fjord = Color(0xFF063C49);
@@ -159,7 +160,8 @@ ButtonStyle _frameworkButtonStyle(ColorScheme scheme, bool wear) =>
 
 /// Resolution-independent ridgelines appear behind every route, including Wear OS.
 class NordicBackdrop extends StatelessWidget {
-  const NordicBackdrop({super.key, required this.child});
+  const NordicBackdrop({super.key, required this.child, this.breath});
+  final ValueListenable<double>? breath;
   final Widget child;
   @override
   Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
@@ -177,9 +179,19 @@ class NordicBackdrop extends StatelessWidget {
         children: [
           Positioned.fill(
             child: ExcludeSemantics(
-              child: CustomPaint(
-                painter: MountainPainter(
-                  dark: Theme.of(context).brightness == Brightness.dark,
+              child: ValueListenableBuilder<double>(
+                valueListenable: breath ?? const AlwaysStoppedAnimation(0.0),
+                builder: (context, amount, _) => TweenAnimationBuilder<double>(
+                  tween: Tween(
+                    end: MediaQuery.disableAnimationsOf(context) ? 0 : amount,
+                  ),
+                  duration: const Duration(milliseconds: 200),
+                  builder: (context, value, _) => CustomPaint(
+                    painter: MountainPainter(
+                      dark: Theme.of(context).brightness == Brightness.dark,
+                      breath: value,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -194,8 +206,9 @@ class NordicBackdrop extends StatelessWidget {
 /// A single scenic background: layered snowy ridges, foothills, trees and mist.
 /// Coordinates are normalized so no bitmap or foreground illustration is needed.
 class MountainPainter extends CustomPainter {
-  const MountainPainter({required this.dark});
+  const MountainPainter({required this.dark, this.breath = 0});
   final bool dark;
+  final double breath;
 
   Path polygon(Size s, List<Offset> points) {
     final path = Path()
@@ -233,7 +246,7 @@ class MountainPainter extends CustomPainter {
     final atmosphere = Rect.fromLTWH(0, -s.height * .4, w, s.height * 1.7);
     canvas.saveLayer(atmosphere, Paint());
     final sw = s.width, sh = s.height;
-    final sunCenter = Offset(sw * .77, sh * .22);
+    final sunCenter = Offset(sw * .77 + breath * 2, sh * .22 - breath * 6);
     canvas.drawCircle(
       sunCenter,
       sw * .12,
@@ -244,6 +257,8 @@ class MountainPainter extends CustomPainter {
               : [const Color(0xFFFFD49A), const Color(0xFFFFA04A)],
         ).createShader(Rect.fromCircle(center: sunCenter, radius: sw * .12)),
     );
+    canvas.save();
+    canvas.translate(-breath * 1.5, -breath * 2);
     final distant = Path()
       ..moveTo(0, sh * .63)
       ..lineTo(sw * .15, sh * .35)
@@ -259,6 +274,9 @@ class MountainPainter extends CustomPainter {
       distant,
       Paint()..color = dark ? const Color(0xFF417F92) : const Color(0xFFB9E0E8),
     );
+    canvas.restore();
+    canvas.save();
+    canvas.translate(breath * 2, -breath * 4);
     final peaks = [
       const [
         Offset(-.12, .65),
@@ -358,7 +376,10 @@ class MountainPainter extends CustomPainter {
     ]) {
       canvas.drawPath(polygon(s, facet), shadow);
     }
+    canvas.restore();
     for (var i = 0; i < 3; i++) {
+      canvas.save();
+      canvas.translate((i - 1) * breath * 1.5, -breath * (i + 1));
       final y = sh * (.49 + i * .15);
       final hills = Path()
         ..moveTo(-sw * .08, sh)
@@ -402,6 +423,7 @@ class MountainPainter extends CustomPainter {
             colors: [colors[i], colors[i].withValues(alpha: .72)],
           ).createShader(Offset.zero & s),
       );
+      canvas.restore();
     }
     void tree(double x, double ground, double height) {
       final width = height * .43;
@@ -447,7 +469,8 @@ class MountainPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(MountainPainter old) => old.dark != dark;
+  bool shouldRepaint(MountainPainter old) =>
+      old.dark != dark || old.breath != breath;
 }
 
 class NordicCard extends StatelessWidget {

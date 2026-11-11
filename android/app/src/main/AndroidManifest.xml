@@ -15,7 +15,7 @@
         <service android:name=".SyncService" android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/easyhof/sessions/" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/easyhof/" />
             </intent-filter>
         </service>
         <meta-data android:name="flutterEmbedding" android:value="2" />

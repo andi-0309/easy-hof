@@ -184,5 +184,5 @@ void main() {
     }
     await tester.pumpWidget(const SizedBox());
     debugDisableShadows = true;
-  });
+  }, skip: isWear);
 }

@@ -1,0 +1,428 @@
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'breathing.dart';
+import 'nordic.dart';
+
+/// A circular interaction area on every watch. Rectangular surplus remains scenery.
+class WearCompanion extends StatefulWidget {
+  const WearCompanion({
+    super.key,
+    required this.data,
+    required this.language,
+    required this.busy,
+    this.error,
+    required this.onStartCold,
+    required this.onStopCold,
+    required this.onStartPulse,
+    required this.onStopPulse,
+  });
+  final Map<String, dynamic> data;
+  final String language;
+  final bool busy;
+  final String? error;
+  final Future<void> Function(String, int, double?) onStartCold;
+  final VoidCallback onStopCold, onStartPulse, onStopPulse;
+  @override
+  State<WearCompanion> createState() => _WearCompanionState();
+}
+
+class _WearCompanionState extends State<WearCompanion> {
+  String page = 'home', kind = 'shower';
+  int seconds = 0;
+  double? temperature;
+  String t(String de, String en) => widget.language == 'de' ? de : en;
+  Widget button(
+    String label,
+    VoidCallback onTap, {
+    NordicTone tone = NordicTone.ice,
+  }) => NordicButton(
+    height: 44,
+    fontSize: 14,
+    radius: 22,
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    tone: tone,
+    onPressed: widget.busy ? null : onTap,
+    child: Text(label, textAlign: TextAlign.center),
+  );
+  Widget gap() => const SizedBox(height: 10);
+  Widget heading(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+    ),
+  );
+  Widget back() =>
+      button(t('Zurück', 'Back'), () => setState(() => page = 'home'));
+  Widget stepper(String value, VoidCallback minus, VoidCallback plus) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          children: [
+            for (var i = 0; i < 3; i++)
+              if (i == 1)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: 40,
+                  child: NordicButton(
+                    height: 44,
+                    minWidth: 32,
+                    fontSize: 20,
+                    padding: EdgeInsets.zero,
+                    radius: 16,
+                    onPressed: i == 0 ? minus : plus,
+                    child: Text(i == 0 ? '−' : '+'),
+                  ),
+                ),
+          ],
+        ),
+      );
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final diameter = math.min(box.maxWidth, box.maxHeight);
+      final active = widget.data['active'] as Map?;
+      final request = widget.data['breathingRequest'] as Map?;
+      final pulse = widget.data['watchPulse'] as Map?;
+      final requestFresh =
+          request != null &&
+          request['ended'] != true &&
+          DateTime.now().millisecondsSinceEpoch -
+                  (request['sentAt'] as num? ?? 0) <
+              30000;
+      final children = <Widget>[];
+      if (active != null) {
+        children.addAll([
+          Text(
+            active['kind'] == 'bath'
+                ? t('Eisbad', 'Ice bath')
+                : t('Dusche', 'Shower'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.1,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            durationLabel((active['durationMs'] as num? ?? 0).toInt()),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 34,
+              height: 1.1,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            active['bpm'] == null
+                ? t('♥ Warte auf Puls', '♥ Waiting for pulse')
+                : '♥ ${active['bpm']} bpm',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 13, height: 1.1),
+          ),
+          const SizedBox(height: 9),
+          button(
+            t('Beenden', 'Finish'),
+            widget.onStopCold,
+            tone: NordicTone.sun,
+          ),
+          gap(),
+          if (active['temperature'] != null)
+            Text('${active['temperature']} °C', textAlign: TextAlign.center),
+        ]);
+      } else if (pulse != null) {
+        children.addAll([
+          heading(t('Puls beim Atmen', 'Breathing pulse')),
+          Text(
+            pulse['bpm'] == null ? '♥ —' : '♥ ${pulse['bpm']}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
+          ),
+          gap(),
+          Text(
+            t('Training am Telefon', 'Training on phone'),
+            textAlign: TextAlign.center,
+          ),
+          gap(),
+          button(
+            t('Puls beenden', 'Stop pulse'),
+            widget.onStopPulse,
+            tone: NordicTone.sun,
+          ),
+        ]);
+      } else if (page == 'time') {
+        children.addAll([
+          heading(t('Zielzeit', 'Target time')),
+          stepper(
+            seconds == 0 ? t('Ohne', 'None') : durationLabel(seconds * 1000),
+            () => setState(() => seconds = math.max(0, seconds - 30)),
+            () => setState(() => seconds = math.min(1800, seconds + 30)),
+          ),
+          button(
+            t('Weiter', 'Next'),
+            () => setState(() => page = 'temperature'),
+            tone: NordicTone.sun,
+          ),
+          gap(),
+          back(),
+        ]);
+      } else if (page == 'temperature') {
+        children.addAll([
+          heading(t('Temperatur', 'Temperature')),
+          if (temperature == null) ...[
+            button(
+              t('Ohne Angabe', 'Skip temperature'),
+              () => widget.onStartCold(kind, seconds, null),
+              tone: NordicTone.sun,
+            ),
+            gap(),
+            button(
+              t('Einstellen', 'Set temperature'),
+              () => setState(() => temperature = kind == 'bath' ? 8 : 15),
+            ),
+          ] else ...[
+            stepper(
+              '${temperature!.toStringAsFixed(1)} °C',
+              () =>
+                  setState(() => temperature = math.max(-2, temperature! - .5)),
+              () =>
+                  setState(() => temperature = math.min(40, temperature! + .5)),
+            ),
+            button(
+              t('Starten', 'Start'),
+              () => widget.onStartCold(kind, seconds, temperature),
+              tone: NordicTone.sun,
+            ),
+          ],
+          gap(),
+          back(),
+        ]);
+      } else if (page == 'breathing') {
+        children.addAll([
+          heading(t('Atmen', 'Breathe')),
+          if (requestFresh) ...[
+            button(
+              t('Puls starten', 'Start pulse'),
+              widget.onStartPulse,
+              tone: NordicTone.sun,
+            ),
+            gap(),
+            Text(
+              t(
+                'Für die laufende Einheit am Telefon.',
+                'For the current phone session.',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ] else
+            Text(
+              t(
+                'Starte das Atemtraining in Easy Hof auf dem Telefon. Bestätige danach hier den Pulszugriff.',
+                'Start breathing in Easy Hof on your phone. Then confirm heart-rate access here.',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          gap(),
+          back(),
+        ]);
+      } else {
+        children.addAll([
+          heading('Easy Hof'),
+          if (widget.data['phoneAppAvailable'] == false) ...[
+            Text(
+              t(
+                'Installiere Easy Hof auch auf deinem Telefon.',
+                'Install Easy Hof on your phone too.',
+              ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
+            ),
+            gap(),
+          ],
+          if (requestFresh) ...[
+            button(
+              t('Puls starten', 'Start pulse'),
+              widget.onStartPulse,
+              tone: NordicTone.sun,
+            ),
+            gap(),
+          ],
+          button(
+            t('Dusche', 'Shower'),
+            () => setState(() {
+              kind = 'shower';
+              seconds = 0;
+              temperature = null;
+              page = 'time';
+            }),
+            tone: NordicTone.sun,
+          ),
+          gap(),
+          button(
+            t('Eisbad', 'Ice bath'),
+            () => setState(() {
+              kind = 'bath';
+              seconds = 0;
+              temperature = null;
+              page = 'time';
+            }),
+          ),
+          gap(),
+          button(
+            t('Atmen · Puls', 'Breathe · pulse'),
+            () => setState(() => page = 'breathing'),
+          ),
+          gap(),
+          Text(
+            t(
+              'Verlauf & Einstellungen am Telefon',
+              'History & settings on phone',
+            ),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ]);
+      }
+      if (widget.error != null) {
+        children.add(Text(widget.error!, textAlign: TextAlign.center));
+      }
+      return Center(
+        child: ClipOval(
+          child: SizedBox.square(
+            dimension: diameter,
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              removeBottom: true,
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: ListView(
+                  key: ValueKey(
+                    '${active != null}-${pulse != null}-$page-$requestFresh',
+                  ),
+                  padding: EdgeInsets.fromLTRB(
+                    diameter * .17,
+                    diameter * (active != null ? .14 : .19),
+                    diameter * .17,
+                    diameter * .23,
+                  ),
+                  children: children,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class WearConfirmation extends StatelessWidget {
+  const WearConfirmation({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.back,
+    required this.accept,
+  });
+  final String title, message, back, accept;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final d = math.min(box.maxWidth, box.maxHeight);
+      return Center(
+        child: ClipOval(
+          child: SizedBox.square(
+            dimension: d,
+            child: Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  d * .17,
+                  d * .16,
+                  d * .17,
+                  d * .17,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 32,
+                          child: NordicButton(
+                            height: 32,
+                            minWidth: 32,
+                            radius: 12,
+                            padding: EdgeInsets.zero,
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Icon(
+                              Icons.arrow_back,
+                              size: 18,
+                              semanticLabel: back,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.1,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          message,
+                          style: const TextStyle(fontSize: 12, height: 1.35),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    NordicButton(
+                      height: 44,
+                      fontSize: 14,
+                      tone: NordicTone.sun,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 6,
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(accept),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}

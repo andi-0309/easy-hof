@@ -35,8 +35,14 @@ class MainActivity : FlutterActivity() {
                         }
                         result.success(null)
                     }
+                    "breathingPulse" -> { BreathingPulse.sendRequest(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }
+                    "startBreathingPulse" -> {
+                        require(BreathingPulse.watch(this) && ColdService.instance == null) { "Finish cold training first" }
+                        startForegroundService(Intent(this, BreathingPulseService::class.java)); result.success(null)
+                    }
+                    "stopBreathingPulse" -> { BreathingPulseService.instance?.finish(); result.success(null) }
                     "snapshot" -> result.success(SessionStore.snapshot(this).toString())
-                    "settings" -> result.success(SessionStore.setting(this, call.argument<String>("json")))
+                    "settings" -> { val value = SessionStore.setting(this, call.argument<String>("json")); if (call.argument<String>("json") != null) SessionSync.publishSettings(this); result.success(value) }
                     "saveSession" -> { SessionStore.newSession(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }
                     "deleteSession" -> { SessionStore.delete(this, call.argument<String>("id")!!); result.success(null) }
                     "sync" -> { SessionSync.sync(this); result.success(null) }
@@ -71,7 +77,7 @@ class MainActivity : FlutterActivity() {
                         else { permissionResult = result; requestPermissions(arrayOf(permission), 71) }
                     }
                     "startCold" -> {
-                        if (ColdService.instance != null) { result.error("active", "A session is already active", null); return@setMethodCallHandler }
+                        if (ColdService.instance != null || BreathingPulseService.instance != null) { result.error("active", "A session is already active", null); return@setMethodCallHandler }
                         val intent = Intent(this, ColdService::class.java)
                             .putExtra("kind", call.argument<String>("kind"))
                             .putExtra("goalSeconds", call.argument<Int>("goalSeconds") ?: 0)

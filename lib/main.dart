@@ -13,6 +13,7 @@ import 'nordic.dart';
 import 'privacy_policy.dart';
 import 'manual_cold.dart';
 import 'training_history.dart';
+import 'wear_companion.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
@@ -47,6 +48,9 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   int lastTick = 0;
   bool completing = false;
   String? lastCue;
+  String? breathingId;
+  int pulseTicks = 0;
+  final landscape = ValueNotifier<double>(0);
   Map<String, dynamic>? pendingBreathing;
   final started = <String, String>{};
   String t(String de, String en) => language == 'de' ? de : en;
@@ -109,7 +113,15 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
 
   Future<void> refresh() async {
     final next = await Device.snapshot();
-    if (mounted) setState(() => data = next);
+    if (mounted) {
+      setState(() {
+        data = next;
+        if (isWear && next['companionSettings'] is Map) {
+          final value = next['companionSettings']['language'];
+          if (value == 'de' || value == 'en') language = value as String;
+        }
+      });
+    }
   }
 
   int refreshTicks = 0;
@@ -131,6 +143,19 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       if (mounted) setState(() {});
       if (b.phase == BreathPhase.done && !completing) finishBreathing();
     }
+    if (b != null) {
+      final limit = b.phaseLimit ?? 1;
+      final progress = (b.phaseMs / limit).clamp(0.0, 1.0);
+      landscape.value = switch (b.phase) {
+        BreathPhase.inhale => progress,
+        BreathPhase.exhale => 1 - progress,
+        BreathPhase.recovery => 1,
+        _ => 0,
+      };
+      if (++pulseTicks % 5 == 0) sendBreathingPulse();
+    } else {
+      landscape.value = 0;
+    }
     if (++refreshTicks % 5 == 0 && !refreshing) {
       refreshing = true;
       refresh()
@@ -143,6 +168,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed && breathing != null) {
       breathing!.paused = true;
+      sendBreathingPulse();
       Device.call('stopSpeech');
       if (mounted) setState(() {});
     }
@@ -157,6 +183,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     timer?.cancel();
     clock.stop();
     WidgetsBinding.instance.removeObserver(this);
+    landscape.dispose();
     super.dispose();
   }
 
@@ -188,21 +215,28 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   Future<bool> confirm(String title, String message, {String? accept}) async =>
       await showDialog<bool>(
         context: dialogContext,
-        builder: (context) => AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(child: Text(message)),
-          actions: [
-            NordicButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(t('Zurück', 'Back')),
-            ),
-            NordicButton(
-              tone: NordicTone.sun,
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(accept ?? t('Verstanden', 'Understood')),
-            ),
-          ],
-        ),
+        builder: (context) => isWear
+            ? WearConfirmation(
+                title: title,
+                message: message,
+                back: t('Zurück', 'Back'),
+                accept: accept ?? t('Verstanden', 'Understood'),
+              )
+            : AlertDialog(
+                title: Text(title),
+                content: SingleChildScrollView(child: Text(message)),
+                actions: [
+                  NordicButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(t('Zurück', 'Back')),
+                  ),
+                  NordicButton(
+                    tone: NordicTone.sun,
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(accept ?? t('Verstanden', 'Understood')),
+                  ),
+                ],
+              ),
       ) ??
       false;
 
@@ -222,6 +256,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     )) {
       return;
     }
+    breathingId =
+        'breath-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}';
     final b = BreathingSession(
       rounds: rounds,
       breaths: breaths,
@@ -233,6 +269,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     completing = false;
     await Device.call('keepScreen', {'enabled': true});
     setState(() => breathing = b);
+    sendBreathingPulse();
     cue();
   }
 
@@ -275,8 +312,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     await Device.call('keepScreen', {'enabled': false});
     if (interrupted) await Device.call('stopSpeech');
     pendingBreathing = {
-      'id':
-          'breath-${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(0x100000000)}',
+      'id': breathingId,
       'kind': 'breathing',
       'startedAt': started['breathing'],
       'durationMs': b.totalMs,
@@ -286,7 +322,28 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       'cycleSeconds': b.cycleSeconds,
       'interrupted': interrupted,
     };
+    await sendBreathingPulse(ended: true);
     await saveBreathing();
+  }
+
+  Future<void> sendBreathingPulse({bool ended = false}) async {
+    final b = breathing;
+    if (isWear || b == null || breathingId == null) return;
+    try {
+      await Device.call('breathingPulse', {
+        'json': jsonEncode({
+          'id': breathingId,
+          'startedAt': started['breathing'],
+          'elapsedMs': b.totalMs,
+          'paused': b.paused,
+          'ended': ended || completing,
+          'language': language,
+          'sentAt': DateTime.now().millisecondsSinceEpoch,
+        }),
+      });
+    } catch (_) {
+      /* Optional pulse never blocks the breathing exercise. */
+    }
   }
 
   Future<void> saveBreathing() async {
@@ -380,7 +437,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         const Locale('de'),
         const Locale('en'),
       }.toList(),
-      builder: (context, child) => NordicBackdrop(child: child!),
+      builder: (context, child) =>
+          NordicBackdrop(breath: landscape, child: child!),
       theme: nordicTheme(Brightness.light, wear: isWear),
       darkTheme: nordicTheme(Brightness.dark, wear: isWear),
       themeMode: isWear ? ThemeMode.dark : ThemeMode.system,
@@ -398,7 +456,46 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (breathing != null) return breathingView(context);
-    if (isWear && tab == 1) return watchColdView(context);
+    if (isWear) {
+      return WearCompanion(
+        data: data,
+        language: language,
+        busy: busy,
+        error: error,
+        onStartCold: (kind, seconds, temp) => action(() async {
+          coldType = kind;
+          goal = seconds;
+          temperatureKnown = temp != null;
+          temperature = temp ?? 15;
+          await startCold();
+        }),
+        onStopCold: () => action(() async {
+          await Device.call('stopCold');
+          await refresh();
+        }),
+        onStartPulse: () => action(() async {
+          if (!await confirm(
+            t('Puls beim Atmen', 'Breathing heart rate'),
+            t(
+              'Die Uhr misst deinen Puls für das Atemtraining am Telefon. Pulsverlauf und Zusammenfassung werden mit dem Telefon synchronisiert. Optional: Ohne Freigabe kannst du weiter trainieren.',
+              'Your watch measures heart rate for the breathing session on your phone. Trace and summary sync to your phone. Optional: you can train without permission.',
+            ),
+          )) {
+            return;
+          }
+          await Device.call<bool>('requestNotifications');
+          final allowed = await Device.call<bool>('requestHeartRate') ?? false;
+          if (allowed) {
+            await Device.call('startBreathingPulse');
+          }
+          await refresh();
+        }),
+        onStopPulse: () => action(() async {
+          await Device.call('stopBreathingPulse');
+          await refresh();
+        }),
+      );
+    }
     final title = [
       t('Atmen', 'Breathe'),
       t('Kälte', 'Cold'),
@@ -416,6 +513,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ? null
           : AppBar(
               title: const Text('Easy Hof'),
+              actionsPadding: const EdgeInsets.only(right: 24),
               actions: [
                 NordicIconButton(
                   tooltip: t('Einstellungen', 'Settings'),
@@ -784,160 +882,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
                 'Heart rate is recorded with permission. Syncs with your phone later.',
               )
             : t(
-                'Deine Uhr zeichnet eigenständig auf und synchronisiert später mit diesem Verlauf.',
-                'Your watch records independently and syncs to this history later.',
+                'Deine Uhr unterstützt dich beim Aufzeichnen und synchronisiert mit diesem Verlauf.',
+                'Your watch helps record training and syncs to this history.',
               ),
       ),
     ];
-  }
-
-  Widget watchColdView(BuildContext context) {
-    final a = cold;
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(26, 20, 26, 40),
-          children: [
-            if (a == null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Flexible(
-                    child: Text('Easy Hof', style: TextStyle(fontSize: 12)),
-                  ),
-                  NordicIconButton(
-                    visualDensity: VisualDensity.compact,
-                    tooltip: t('Verlauf', 'History'),
-                    onPressed: () => setState(() => tab = 2),
-                    icon: const Icon(Icons.history, size: 20),
-                  ),
-                  NordicIconButton(
-                    visualDensity: VisualDensity.compact,
-                    tooltip: t('Einstellungen', 'Settings'),
-                    onPressed: () => setState(() => tab = 3),
-                    icon: const Icon(Icons.settings, size: 20),
-                  ),
-                ],
-              ),
-            if (error != null)
-              Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            if (a == null) ...[
-              NordicDropdown<String>(
-                height: 48,
-                isExpanded: true,
-                value: coldType,
-                items: [
-                  DropdownMenuItem(
-                    value: 'shower',
-                    child: Text(t('Dusche', 'Shower')),
-                  ),
-                  DropdownMenuItem(
-                    value: 'bath',
-                    child: Text(t('Eisbad', 'Ice bath')),
-                  ),
-                ],
-                onChanged: (v) => setState(() => coldType = v!),
-              ),
-              SunButton(
-                onPressed: busy ? null : () => action(startCold),
-                label: t('Starten', 'Start'),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  t('Temperatur', 'Temperature'),
-                  style: const TextStyle(fontSize: 13),
-                ),
-                value: temperatureKnown,
-                onChanged: (v) => setState(() => temperatureKnown = v),
-              ),
-              if (temperatureKnown)
-                numberControl(
-                  '°C',
-                  (temperature * 2).round(),
-                  -4,
-                  80,
-                  (v) => setState(() => temperature = v / 2),
-                  display: '${temperature.toStringAsFixed(1)} °C',
-                ),
-              numberControl(
-                t('Zielzeit', 'Target time'),
-                goal,
-                0,
-                1800,
-                (v) => setState(() => goal = v),
-                step: 30,
-                display: goal == 0
-                    ? t('Ohne', 'None')
-                    : durationLabel(goal * 1000),
-              ),
-              Text(
-                t(
-                  'Temperatur manuell. Puls mit Sensorberechtigung. Sync bei Verbindung.',
-                  'Manual temperature. Heart rate with sensor permission. Sync when connected.',
-                ),
-                style: const TextStyle(fontSize: 12),
-              ),
-            ] else ...[
-              Text(
-                a['kind'] == 'bath'
-                    ? t('Eisbad', 'Ice bath')
-                    : t('Dusche', 'Shower'),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                durationLabel((a['durationMs'] as num? ?? 0).toInt()),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
-              ),
-              NordicButton(
-                onPressed: busy
-                    ? null
-                    : () => action(() async {
-                        await Device.call('stopCold');
-                        await refresh();
-                        setState(() => tab = 2);
-                      }),
-                child: Text(t('Beenden', 'Finish')),
-              ),
-              space(),
-              Text(
-                a['bpm'] == null
-                    ? t('♥ Kein Messwert', '♥ No reading')
-                    : '♥ ${(a['bpm'] as num).round()} bpm',
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                hrStatus(a['hrStatus']?.toString() ?? 'waiting'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12),
-              ),
-              if (a['temperature'] != null)
-                Text('${a['temperature']} °C', textAlign: TextAlign.center),
-              if ((a['hrSamples'] as List? ?? []).isNotEmpty)
-                HeartRateChart(session: a, language: language),
-              if ((a['goalSeconds'] as num? ?? 0) > 0)
-                Text(
-                  '${t('Ziel', 'Target')}: ${durationLabel((a['goalSeconds'] as num).toInt() * 1000)}${a['goalReached'] == true ? ' ✓' : ''}',
-                  textAlign: TextAlign.center,
-                ),
-              space(),
-              Text(
-                t('Normal weiteratmen.', 'Breathe normally.'),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 
   String hrStatus(String status) => switch (status) {
@@ -1132,7 +1081,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.2.2'),
+      const Text('Version 1.3.0'),
     ]),
   ];
 
@@ -1152,6 +1101,11 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     voice: voice,
     error: error,
     pendingSave: pendingBreathing != null,
+    heartRate:
+        data['breathingPulse'] is Map &&
+            data['breathingPulse']['id'] == breathingId
+        ? Map<String, dynamic>.from(data['breathingPulse'] as Map)
+        : null,
     onToggleVoice: () => action(() async {
       setState(() => voice = !voice);
       if (!voice) {
@@ -1167,6 +1121,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         breathing!.paused = !breathing!.paused;
         lastTick = elapsed;
       });
+      sendBreathingPulse();
       if (breathing!.paused) {
         Device.call('stopSpeech');
       } else {

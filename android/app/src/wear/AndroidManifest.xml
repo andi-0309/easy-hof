@@ -5,7 +5,8 @@
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <application>
-        <meta-data android:name="com.google.android.wearable.standalone" android:value="true" />
+        <service android:name=".BreathingPulseService" android:exported="false" android:foregroundServiceType="health" />
+        <meta-data android:name="com.google.android.wearable.standalone" android:value="false" />
         <service android:name=".ColdService" android:foregroundServiceType="health|specialUse" tools:replace="android:foregroundServiceType" />
     </application>
 </manifest>

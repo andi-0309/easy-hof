@@ -18,12 +18,14 @@ class BreathingPage extends StatelessWidget {
     required this.onExhale,
     required this.onRetry,
     this.error,
+    this.heartRate,
     this.pendingSave = false,
   });
   final BreathingSession session;
   final String language;
   final bool voice, pendingSave;
   final String? error;
+  final Map<String, dynamic>? heartRate;
   final VoidCallback onToggleVoice,
       onTogglePause,
       onFinish,
@@ -98,6 +100,11 @@ class BreathingPage extends StatelessWidget {
         : t('Sekunden', 'Seconds');
     final primary =
         b.phase == BreathPhase.retention || b.phase == BreathPhase.recovery;
+    final pulse = heartRate;
+    final fresh =
+        pulse != null &&
+        DateTime.now().millisecondsSinceEpoch - (pulse['sentAt'] as num? ?? 0) <
+            30000;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -129,207 +136,223 @@ class BreathingPage extends StatelessWidget {
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: box.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Center(
-                      child: SizedBox(
-                        width: width,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${t('Runde', 'Round')} ${b.round} / ${b.rounds}',
-                                          style: const TextStyle(
-                                            fontFamily: 'Manrope',
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        ExcludeSemantics(
-                                          child: Row(
-                                            children: [
-                                              for (
-                                                var i = 1;
-                                                i <= b.rounds;
-                                                i++
-                                              ) ...[
-                                                if (i > 1)
-                                                  Container(
-                                                    width: 8,
-                                                    height: 2,
-                                                    color: colors.primary
-                                                        .withValues(alpha: .25),
-                                                  ),
-                                                Container(
-                                                  width: 12,
-                                                  height: 12,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: i <= b.round
-                                                        ? colors.primary
-                                                        : colors.surface,
-                                                    border: Border.all(
-                                                      color: colors.primary
-                                                          .withValues(
-                                                            alpha: i <= b.round
-                                                                ? 1
-                                                                : .3,
-                                                          ),
-                                                      width: 1.5,
-                                                    ),
-                                                    boxShadow: i == b.round
-                                                        ? [
-                                                            BoxShadow(
-                                                              color: colors
-                                                                  .primary
-                                                                  .withValues(
-                                                                    alpha: .2,
-                                                                  ),
-                                                              blurRadius: 6,
-                                                              offset:
-                                                                  const Offset(
-                                                                    0,
-                                                                    2,
-                                                                  ),
-                                                            ),
-                                                          ]
-                                                        : [],
-                                                  ),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  NordicIconButton(
-                                    tooltip: voice
-                                        ? t('Ton ausschalten', 'Mute audio')
-                                        : t('Ton einschalten', 'Enable audio'),
-                                    onPressed: onToggleVoice,
-                                    iconSize: 26,
-                                    padding: const EdgeInsets.all(13),
-                                    icon: Icon(
-                                      voice
-                                          ? Icons.volume_up_rounded
-                                          : Icons.volume_off_rounded,
-                                      color: colors.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                height: math.min(38, box.maxHeight * .05),
-                              ),
-                              if (error != null)
-                                Text(
-                                  error!,
-                                  style: TextStyle(color: colors.error),
+                  child: Center(
+                    child: SizedBox(
+                      width: width,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                fresh
+                                    ? (pulse['bpm'] == null
+                                          ? t(
+                                              '♥ Warte auf Pulssignal',
+                                              '♥ Waiting for pulse',
+                                            )
+                                          : '♥ ${pulse['bpm']} bpm')
+                                    : t(
+                                        'Puls: Easy Hof auf der Uhr öffnen und bestätigen',
+                                        'Heart rate: open Easy Hof on your watch and confirm',
+                                      ),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colors.onSurfaceVariant,
                                 ),
-                              Semantics(
-                                liveRegion: true,
+                              ),
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${t('Runde', 'Round')} ${b.round} / ${b.rounds}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Manrope',
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ExcludeSemantics(
+                                        child: Row(
+                                          children: [
+                                            for (
+                                              var i = 1;
+                                              i <= b.rounds;
+                                              i++
+                                            ) ...[
+                                              if (i > 1)
+                                                Container(
+                                                  width: 8,
+                                                  height: 2,
+                                                  color: colors.primary
+                                                      .withValues(alpha: .25),
+                                                ),
+                                              Container(
+                                                width: 12,
+                                                height: 12,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: i <= b.round
+                                                      ? colors.primary
+                                                      : colors.surface,
+                                                  border: Border.all(
+                                                    color: colors.primary
+                                                        .withValues(
+                                                          alpha: i <= b.round
+                                                              ? 1
+                                                              : .3,
+                                                        ),
+                                                    width: 1.5,
+                                                  ),
+                                                  boxShadow: i == b.round
+                                                      ? [
+                                                          BoxShadow(
+                                                            color: colors
+                                                                .primary
+                                                                .withValues(
+                                                                  alpha: .2,
+                                                                ),
+                                                            blurRadius: 6,
+                                                            offset:
+                                                                const Offset(
+                                                                  0,
+                                                                  2,
+                                                                ),
+                                                          ),
+                                                        ]
+                                                      : [],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                NordicIconButton(
+                                  tooltip: voice
+                                      ? t('Ton ausschalten', 'Mute audio')
+                                      : t('Ton einschalten', 'Enable audio'),
+                                  onPressed: onToggleVoice,
+                                  iconSize: 26,
+                                  padding: const EdgeInsets.all(13),
+                                  icon: Icon(
+                                    voice
+                                        ? Icons.volume_up_rounded
+                                        : Icons.volume_off_rounded,
+                                    color: colors.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: math.min(38, box.maxHeight * .05)),
+                            if (error != null)
+                              Text(
+                                error!,
+                                style: TextStyle(color: colors.error),
+                              ),
+                            Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                phase,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Manrope',
+                                  fontSize: width < 350 ? 32 : 38,
+                                  fontWeight: FontWeight.w800,
+                                  color: colors.onSurface,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              subtitle,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 17,
+                                height: 1.4,
+                                color: colors.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: math.min(38, box.maxHeight * .05)),
+                            SizedBox(
+                              height: counterSize * 1.22,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
                                 child: Text(
-                                  phase,
-                                  textAlign: TextAlign.center,
+                                  count,
+                                  key: const Key('breathing-counter'),
                                   style: TextStyle(
                                     fontFamily: 'Manrope',
-                                    fontSize: width < 350 ? 32 : 38,
+                                    fontSize: counterSize,
                                     fontWeight: FontWeight.w800,
+                                    letterSpacing: -3,
                                     color: colors.onSurface,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              Text(
-                                subtitle,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  height: 1.4,
-                                  color: colors.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                            ),
+                            Text(
+                              label,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600,
+                                color: colors.onSurfaceVariant,
                               ),
-                              SizedBox(
-                                height: math.min(38, box.maxHeight * .05),
+                            ),
+                            // Leave the scenic background unobstructed between counter and controls.
+                            SizedBox(
+                              height: primary
+                                  ? 36
+                                  : math.max(100, box.maxHeight * .15),
+                            ),
+                            if (pendingSave)
+                              SunButton(
+                                large: true,
+                                label: t('Erneut speichern', 'Retry save'),
+                                icon: Icons.refresh_rounded,
+                                onPressed: onRetry,
+                              )
+                            else ...[
+                              SunButton(
+                                large: true,
+                                height: 64,
+                                secondary: true,
+                                label: b.paused
+                                    ? t('Fortsetzen', 'Resume')
+                                    : t('Pause', 'Pause'),
+                                icon: b.paused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                                onPressed: onTogglePause,
                               ),
-                              SizedBox(
-                                height: counterSize * 1.22,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    count,
-                                    key: const Key('breathing-counter'),
-                                    style: TextStyle(
-                                      fontFamily: 'Manrope',
-                                      fontSize: counterSize,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -3,
-                                      color: colors.onSurface,
-                                    ),
-                                  ),
-                                ),
+                              const SizedBox(height: 18),
+                              SunButton(
+                                large: true,
+                                height: 64,
+                                deep: true,
+                                label: t('Beenden', 'Finish'),
+                                icon: Icons.stop_rounded,
+                                onPressed: onFinish,
                               ),
-                              Text(
-                                label,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                              // Leave the scenic background unobstructed between counter and controls.
-                              SizedBox(
-                                height: primary
-                                    ? 36
-                                    : math.max(100, box.maxHeight * .15),
-                              ),
-                              if (pendingSave)
-                                SunButton(
-                                  large: true,
-                                  label: t('Erneut speichern', 'Retry save'),
-                                  icon: Icons.refresh_rounded,
-                                  onPressed: onRetry,
-                                )
-                              else ...[
-                                SunButton(
-                                  large: true,
-                                  height: 64,
-                                  secondary: true,
-                                  label: b.paused
-                                      ? t('Fortsetzen', 'Resume')
-                                      : t('Pause', 'Pause'),
-                                  icon: b.paused
-                                      ? Icons.play_arrow_rounded
-                                      : Icons.pause_rounded,
-                                  onPressed: onTogglePause,
-                                ),
-                                const SizedBox(height: 18),
-                                SunButton(
-                                  large: true,
-                                  height: 64,
-                                  deep: true,
-                                  label: t('Beenden', 'Finish'),
-                                  icon: Icons.stop_rounded,
-                                  onPressed: onFinish,
-                                ),
-                              ],
-                              const Spacer(),
                             ],
-                          ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
                       ),
                     ),

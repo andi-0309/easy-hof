@@ -28,7 +28,7 @@ def validate(bundle, bundletool, version_code, wear, certificate):
         assert watches[0].get(ANDROID + 'required', 'true') == 'true'
         standalone = next((meta for meta in manifest.findall('application/meta-data')
                            if meta.get(ANDROID + 'name') == 'com.google.android.wearable.standalone'), None)
-        assert standalone is not None and standalone.get(ANDROID + 'value') == 'true'
+        assert standalone is not None and standalone.get(ANDROID + 'value') == 'false'
     with zipfile.ZipFile(bundle) as archive:
         assert archive.testzip() is None, 'Corrupt ZIP entry'
         assert not any(p.endswith('.apk') for p in archive.namelist()), 'Embedded APK in Play bundle'

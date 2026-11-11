@@ -29,7 +29,7 @@ Design für den Abend lassen Platz für das Wesentliche: deine Routine.
 | Sanfte Atemgeräusche zum Mitatmen | Dauer und optionale Temperatur festhalten |
 | Deutsche und englische Sprachführung | Optionales Zeitziel |
 | Atemhalten ohne Leistungsdruck | Herzfrequenz auf unterstützten Uhren |
-| Übersichtlicher Trainingsverlauf | Eigenständiges Training mit Wear OS |
+| Übersichtlicher Trainingsverlauf | Schnelle Aufzeichnung mit Wear OS |
 
 Du hast ohne Timer trainiert? Trage Duschen und Eisbäder mit Datum, Dauer und
 optionaler Temperatur nach – direkt unter **Kälte** oder im **Verlauf**, auf dem
@@ -74,10 +74,20 @@ Android 9+ für das Smartphone. Die Uhr-App wird über Google Play verteilt.
 
 ## Deine Uhr. Deine Routine.
 
-Starte ein Kältetraining direkt am Handgelenk – auch wenn dein Smartphone zu Hause
-liegt. Dauer, Temperatur und optional Herzfrequenz werden auf der Uhr erfasst.
-Sind die regulär gekoppelten Geräte wieder verbunden, können sie ihre Sitzungen
-abgleichen. Herzfrequenzzugriff ist optional und benötigt die Sensorberechtigung.
+Die Uhr ist die kompakte Ergänzung zum Telefon: Wähle **Dusche** oder **Eisbad**,
+stelle danach Zielzeit und Temperatur ein und starte die Aufzeichnung. Die
+kreisförmige Bedienfläche ist für runde Displays optimiert; eckige Displays zeigen
+im zusätzlichen Platz die Landschaft. Verlauf und Einstellungen bleiben am Telefon.
+Eine laufende Kälteaufzeichnung funktioniert auch bei vorübergehend getrennter
+Verbindung und wird später synchronisiert.
+
+**Puls beim Atmen:** Starte das Atemtraining am Telefon, öffne Easy Hof auf der
+gekoppelten Uhr und tippe auf **Puls starten**. Bestätige den optionalen Sensorzugriff.
+Danach erscheint der Puls am Telefon und wird mit der Atemeinheit gespeichert.
+Die Übertragung benötigt eine Geräteverbindung und Google Play-Dienste. Ohne
+Messwert oder Freigabe läuft das Atemtraining weiter. Bei einer Pause werden keine
+Pulspunkte erfasst; bei längerem Verbindungsabbruch endet die Sensoraufnahme.
+Es findet keine Pulsmessung außerhalb gestarteter Trainings statt.
 
 **Installation über Google Play:**
 
