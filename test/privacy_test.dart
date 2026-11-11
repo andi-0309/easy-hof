@@ -40,7 +40,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.tune_rounded));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Privacy policy'));
+      await tester.scrollUntilVisible(
+        find.text('Privacy policy'),
+        350,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Privacy policy'));
       await tester.pumpAndSettle();
