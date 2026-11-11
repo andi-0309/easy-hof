@@ -28,8 +28,10 @@ void main() {
         )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
       });
       final boundary = GlobalKey();
+      var storeLaunches = 0;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(Device.channel, (call) async {
+            if (call.method == 'openWatchStore') storeLaunches++;
             if (call.method == 'settings') {
               return jsonEncode({'language': 'de'});
             }
@@ -92,9 +94,10 @@ void main() {
           await tester.pumpAndSettle();
           await tester.ensureVisible(find.text('Uhr-App installieren'));
           await tester.pumpAndSettle();
+          final previousStoreLaunches = storeLaunches;
           await tester.tap(find.text('Uhr-App installieren'));
           await tester.pumpAndSettle();
-          expect(find.text('Deine Uhr verbinden'), findsOneWidget);
+          expect(storeLaunches, previousStoreLaunches + 1);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         }

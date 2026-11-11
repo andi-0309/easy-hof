@@ -2,6 +2,8 @@ package io.github.andi_0309.easyhof
 
 import android.Manifest
 import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.net.Uri
 import android.content.pm.PackageManager
 import android.os.Build
 import android.media.MediaPlayer
@@ -28,7 +30,15 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "io.github.andi_0309.easyhof/device").setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
-                    "watchPair", "watchInstall" -> WatchInstaller.handle(this, call, result)
+                    "openWatchStore" -> {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                            .setPackage("com.android.vending")
+                        try { startActivity(intent) }
+                        catch (_: ActivityNotFoundException) {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")))
+                        }
+                        result.success(null)
+                    }
                     "snapshot" -> result.success(SessionStore.snapshot(this).toString())
                     "settings" -> result.success(SessionStore.setting(this, call.argument<String>("json")))
                     "saveSession" -> { SessionStore.newSession(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }

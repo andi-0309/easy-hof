@@ -16,7 +16,6 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
-    androidResources { noCompress += "apk" }
     flavorDimensions += "device"
     productFlavors {
         create("phone") { dimension = "device" }
@@ -34,7 +33,6 @@ android {
     }
     buildTypes {
         release {
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("production") ?: signingConfigs.getByName("debug")
         }
     }
@@ -43,8 +41,6 @@ kotlin { compilerOptions { jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget
 flutter { source = "../.." }
 dependencies {
     implementation("com.google.android.gms:play-services-wearable:20.0.1")
-    "phoneImplementation"("com.github.MuntashirAkon:libadb-android:3.1.1")
-    "phoneImplementation"("org.conscrypt:conscrypt-android:2.5.3")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
 }

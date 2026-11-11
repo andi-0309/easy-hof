@@ -27,8 +27,9 @@ jobs:
       - run: flutter --suppress-analytics pub get --enforce-lockfile
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: python3 tools/check_voice_assets.py
+      - run: python3 tools/test_release_version.py
       - run: flutter --suppress-analytics analyze
-      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart
+      - run: flutter --suppress-analytics test test/breathing_test.dart test/widget_test.dart test/audio_assets_test.dart test/nordic_layout_test.dart test/play_store_test.dart
       - run: flutter --suppress-analytics test --dart-define=WEAR=true test/wear_test.dart
   build:
     needs: check
@@ -49,10 +50,9 @@ jobs:
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
       - run: flutter --suppress-analytics pub get --enforce-lockfile
-      - name: Derive release version from tag
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Derive shared version and distinct form-factor codes
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
         run: python3 tools/release_version.py "$RELEASE_TAG"
       - name: Configure private release signing
         if: github.event_name != 'pull_request'
@@ -75,22 +75,14 @@ jobs:
             echo "KEY_ALIAS=$SIGNING_ALIAS" >> "$GITHUB_ENV"
             echo "KEY_PASSWORD=$SIGNING_PASSWORD" >> "$GITHUB_ENV"
           fi
-      - name: Build watch APK first
+      - name: Build watch APK
         shell: bash
         run: |
-          args=()
-          if [ -n "${RELEASE_VERSION:-}" ]; then args+=(--build-name "$RELEASE_VERSION" --build-number "$RELEASE_CODE"); fi
-          flutter --suppress-analytics build apk --release --flavor wear --dart-define=WEAR=true "${args[@]}"
-      - name: Bundle watch installer in phone variant only
-        run: |
-          mkdir -p android/app/src/phone/assets/wear
-          cp build/app/outputs/flutter-apk/app-wear-release.apk android/app/src/phone/assets/wear/easy-hof-wear.apk
+          flutter --suppress-analytics build apk --release --flavor wear --dart-define=WEAR=true --build-name "$RELEASE_VERSION" --build-number "$WEAR_CODE"
       - name: Build phone APK with the same signing identity and version
         shell: bash
         run: |
-          args=()
-          if [ -n "${RELEASE_VERSION:-}" ]; then args+=(--build-name "$RELEASE_VERSION" --build-number "$RELEASE_CODE"); fi
-          flutter --suppress-analytics build apk --release --flavor phone "${args[@]}"
+          flutter --suppress-analytics build apk --release --flavor phone --build-name "$RELEASE_VERSION" --build-number "$PHONE_CODE"
       - name: Verify Android package identity in both APKs
         shell: bash
         run: |
@@ -98,8 +90,6 @@ jobs:
             "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "build/app/outputs/flutter-apk/app-$flavor-release.apk" > "$RUNNER_TEMP/$flavor-badging.txt"
             grep -F "package: name='io.github.andi_0309.easyhof'" "$RUNNER_TEMP/$flavor-badging.txt"
           done
-      - name: Verify bundled watch installer
-        run: python3 tools/check_apk_bundle.py build/app/outputs/flutter-apk/app-phone-release.apk build/app/outputs/flutter-apk/app-wear-release.apk
       - name: Prepare release assets
         run: |
           mkdir -p dist
@@ -127,6 +117,32 @@ jobs:
           path: build/app/outputs/flutter-apk/app-wear-release.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Build Play Store phone and watch bundles
+        if: env.KEYSTORE_PATH != ''
+        shell: bash
+        run: |
+          flutter --suppress-analytics build appbundle --release --flavor phone --build-name "$RELEASE_VERSION" --build-number "$PHONE_CODE"
+          flutter --suppress-analytics build appbundle --release --flavor wear --dart-define=WEAR=true --build-name "$RELEASE_VERSION" --build-number "$WEAR_CODE"
+          mkdir -p dist-play
+          cp build/app/outputs/bundle/phoneRelease/app-phone-release.aab dist-play/easy-hof-phone.aab
+          cp build/app/outputs/bundle/wearRelease/app-wear-release.aab dist-play/easy-hof-wear.aab
+          cd dist-play
+          sha256sum *.aab > PLAY-SHA256SUMS
+      - name: Download pinned Google bundletool
+        if: env.KEYSTORE_PATH != ''
+        run: |
+          curl --fail --location --retry 3 https://github.com/google/bundletool/releases/download/1.18.2/bundletool-all-1.18.2.jar --output "$RUNNER_TEMP/bundletool.jar"
+          echo "378b5434cd1378bef6b2bc527b8c7f0ff2584b273830335bce54d6d0813c8584  $RUNNER_TEMP/bundletool.jar" | sha256sum --check
+      - name: Verify Play bundle identity, form factors, versions and private signing
+        if: env.KEYSTORE_PATH != ''
+        run: python3 tools/check_play_bundles.py --phone dist-play/easy-hof-phone.aab --wear dist-play/easy-hof-wear.aab --bundletool "$RUNNER_TEMP/bundletool.jar"
+      - uses: actions/upload-artifact@v4
+        if: env.KEYSTORE_PATH != ''
+        with:
+          name: play-store-bundles
+          path: dist-play/*
+          if-no-files-found: error
+          retention-days: 30
       - name: Remove private signing file
         if: always()
         run: rm -f "$RUNNER_TEMP/easy-hof.jks"
@@ -141,10 +157,14 @@ jobs:
         with:
           name: release-apks
           path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: play-store-bundles
+          path: dist-play
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         shell: bash
-        run: gh release create "$RELEASE_TAG" dist/* --verify-tag --generate-notes --title "Easy Hof $RELEASE_TAG"
+        run: gh release create "$RELEASE_TAG" dist/* dist-play/* --verify-tag --generate-notes --title "Easy Hof $RELEASE_TAG"

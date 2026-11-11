@@ -63,7 +63,7 @@ Release veröffentlicht wurde, gibt es dort noch keine installierbare Version.
 Öffne die [Releases](https://github.com/andi-0309/easy-hof/releases), lade
 `easy-hof-phone.apk` und installiere sie auf dem Smartphone. `easy-hof-wear.apk`
 ist ausschließlich für die Uhr. Für beide APKs liegen SHA-256-Prüfsummen bei.
-Android 9+ für das Smartphone; für die integrierte WLAN-Installation Wear OS 3+.
+Android 9+ für das Smartphone. Die Uhr-App wird über Google Play verteilt.
 
 ## Deine Uhr. Deine Routine.
 
@@ -72,23 +72,20 @@ liegt. Dauer, Temperatur und optional Herzfrequenz werden auf der Uhr erfasst.
 Sind die regulär gekoppelten Geräte wieder verbunden, können sie ihre Sitzungen
 abgleichen. Herzfrequenzzugriff ist optional und benötigt die Sensorberechtigung.
 
-**Installation aus Easy Hof, ohne Computer:**
+**Installation über Google Play:**
 
-1. Verbinde Uhr und Smartphone mit demselben WLAN.
-2. Öffne auf dem Smartphone **Easy Hof → Einstellungen → Uhr-App installieren**.
-3. Aktiviere auf der Uhr Entwickleroptionen, ADB-Debugging und WLAN-Debugging.
-4. Wähle auf der Uhr **Mit Kopplungscode koppeln** und trage IP-Adresse,
-   Kopplungsport und Code in Easy Hof ein.
-5. Gehe auf der Uhr zurück zur WLAN-Debugging-Seite. Übernimm den dortigen
-   **Verbindungsport** (anders als der Kopplungsport) und tippe auf **Installieren**.
-6. Öffne Easy Hof auf der Uhr. Deaktiviere WLAN-Debugging danach wieder.
+1. Installiere Easy Hof auf deinem Smartphone – über GitHub/Obtainium oder Google Play.
+2. Öffne **Einstellungen → Uhr-App installieren**. Der Button öffnet den Play-Store-Eintrag.
+3. Wähle deine Uhr unter **Auf weiteren Geräten installieren** aus oder öffne den
+   Play Store direkt auf der Uhr und installiere Easy Hof dort.
+4. Verwende dasselbe Google-Konto auf Smartphone und Uhr. Für den internen Test
+   muss dieses Konto als Tester eingetragen sein und die Testeinladung annehmen.
 
-Die passende Wear-APK ist bereits in der Smartphone-App enthalten. Updates der
-Uhr installierst du über denselben Bildschirm; nach dem Handy-Update ist auch die
-neue Wear-APK enthalten. Obtainium aktualisiert die Uhr **nicht automatisch**.
-Beide Apps müssen aus derselben Release-Serie mit identischer Signatur stammen.
-Die WLAN-Verbindung dient nur der von dir gestarteten Installation. Es werden
-keine Trainingsdaten an einen Server übertragen.
+Die Uhr-App steht im Play Store bereit, sobald der entsprechende Test oder Release
+freigeschaltet ist. Der Store übernimmt auch ihre Updates. Die Smartphone-App
+enthält keinen WLAN-/ADB-Installer und keine eingebettete Wear-APK. Beide
+Installationsquellen öffnen denselben Store-Eintrag für die Uhr. Für die
+Synchronisierung benötigen beide Apps denselben Paketnamen und dieselbe Signatur.
 
 ## Bewusst trainieren
 
@@ -117,5 +114,6 @@ Die enthaltenen Schriften und Bibliotheken behalten ihre jeweiligen Lizenzen.
 breathing and cold routines. Follow natural breath sounds, choose German or
 English guidance, and keep your history on your devices. Install the phone APK
 through Obtainium using the repository URL and the `^easy-hof-phone\.apk$` filter.
-Use **Settings → Install watch app** to pair via Wireless debugging and install
-the included watch APK. No account, subscription or analytics.
+Use **Settings → Install watch app** to open Google Play and install Easy Hof
+on your watch. Watch updates are delivered through Google Play. No Easy Hof account,
+subscription or analytics.

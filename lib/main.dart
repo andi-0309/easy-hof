@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'breathing.dart';
 import 'platform.dart';
 import 'nordic.dart';
-import 'watch_install.dart';
 
 const isWear = bool.fromEnvironment('WEAR');
 void main() => runApp(const EasyHof());
@@ -1041,19 +1040,17 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         space(),
         Text(
           t(
-            'Eigenständig trainieren. Später synchronisieren. Installiere die enthaltene Wear-App direkt über WLAN.',
-            'Train independently. Sync later. Install the bundled Wear app directly over Wi-Fi.',
+            'Öffne Google Play und wähle deine Uhr unter „Auf weiteren Geräten installieren“. Verwende auf beiden Geräten dasselbe Google-Konto.',
+            'Open Google Play and select your watch under “Install on more devices”. Use the same Google account on both devices.',
           ),
         ),
         space(),
         SunButton(
           icon: Icons.download_rounded,
           label: t('Uhr-App installieren', 'Install watch app'),
-          onPressed: () => Navigator.of(dialogContext).push(
-            MaterialPageRoute<void>(
-              builder: (_) => WatchInstall(language: language),
-            ),
-          ),
+          onPressed: () => action(() async {
+            await Device.call('openWatchStore');
+          }),
         ),
       ]),
     panel([
