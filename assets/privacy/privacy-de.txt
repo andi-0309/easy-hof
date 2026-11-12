@@ -1,5 +1,5 @@
 Datenschutzerklärung – Easy Hof
-Stand: 2026-11-11
+Stand: 2026-11-12
 Online: https://github.com/andi-0309/easy-hof/blob/main/PRIVACY.md
 
 1. Geltungsbereich und Kontakt
@@ -54,3 +54,11 @@ Diese öffentliche Erklärung und der Quellcode werden auf GitHub gehostet. Beim
 Du entscheidest, wann du ein Training startest und ob du die Herzfrequenzberechtigung erteilst. Du kannst Berechtigungen in den Systemeinstellungen verwalten sowie Einheiten in der App löschen und den Verlauf exportieren. Fragen zu dieser Erklärung oder zur Datenverarbeitung kannst du über den oben angegebenen Kontaktweg stellen.
 
 Bei Änderungen der Datenverarbeitung wird diese Erklärung aktualisiert. Die veröffentlichte Onlinefassung gilt für den dort beschriebenen Versionsstand; die App enthält die zu ihrem Build gehörende Offlinefassung.
+
+8. Optionales Health-Connect-Archiv ab Version 1.4.0
+
+Die Uhr verwendet Health Services zur Pulsmessung während aktiver Trainings. Laufende Kälteeinheiten können ebenfalls Live-Pulswerte mit dem Telefon austauschen. Bei verfügbarer Verbindung und geöffneter Uhren-App kann die Messung für eine laufende Telefon-Einheit automatisch fortgesetzt werden, sofern du die Sensorberechtigung bereits erteilt hast. Für neue Pulsverläufe werden zusätzlich die tatsächlichen Messzeitpunkte gespeichert.
+
+Health Connect am Telefon ist standardmäßig ausgeschaltet. Erst nach deiner Aktivierung in den Einstellungen und Freigabe von WRITE_EXERCISE und WRITE_HEART_RATE schreibt Easy Hof Trainingszeiträume und vorhandene Pulsmessungen in Health Connect. Es werden keine Daten anderer Apps gelesen. Wassertemperatur und Atemhaltezeiten verbleiben in der lokalen Historie. Ältere Atemeinheiten ohne zuverlässigen Endzeitpunkt werden nicht exportiert; fehlende Pulswerte werden nicht rekonstruiert. Die lokale Historie bleibt auch ohne Health Connect verfügbar.
+
+Neue und geänderte Einheiten werden bei geöffneter App beziehungsweise nach dem Geräteabgleich übertragen. Das Löschen einer Einheit entfernt bei aktiver Verbindung zum Archiv auch ihre von Easy Hof geschriebenen Health-Connect-Daten; fehlgeschlagene Übertragungen werden beim nächsten Abgleich erneut versucht. Nach dem Trennen bleiben bestehende Kopien in Health Connect erhalten. Du kannst sie dort löschen oder die Verbindung erneut aktivieren, um ausstehende Löschungen abzugleichen. Andere Apps mit deiner Health-Connect-Freigabe können auf die dort gespeicherten Daten zugreifen. Easy Hof benötigt dafür kein Cloud-Konto und überträgt keine Daten an einen Entwickler-Server.

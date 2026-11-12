@@ -5,18 +5,19 @@ import android.app.*
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.hardware.*
 import android.os.*
 import org.json.JSONObject
 import java.time.Instant
 import java.util.UUID
 
-class ColdService : Service(), SensorEventListener {
+class ColdService : Service() {
     companion object { var instance: ColdService? = null; private set }
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var record: JSONObject
-    private lateinit var sensors: SensorManager
+    private var heart: HeartRateSource? = null
     private var wake: PowerManager.WakeLock? = null
+    private val bootEpoch = System.currentTimeMillis() - SystemClock.elapsedRealtime()
+    private var liveTick = 0
     private var startElapsed = 0L
     private var lastSample = 0L
     private var lastCheckpoint = 0L
@@ -33,13 +34,18 @@ class ColdService : Service(), SensorEventListener {
                 record.put("goalReached", true)
                 vibrate()
             }
+            if (BreathingPulse.watch(this@ColdService)) {
+                val live = snapshot().put("sentAt", System.currentTimeMillis())
+                BreathingPulse.publishLive(this@ColdService, live)
+                if (++liveTick % 5 == 0) BreathingPulse.publish(this@ColdService, live)
+            } else if (++liveTick % 5 == 0) sendPulseRequest(false)
             if (elapsed - lastCheckpoint >= 5000) { checkpoint(); lastCheckpoint = elapsed }
             if (elapsed >= 7200000) { finish(true); return }
             getSystemService(NotificationManager::class.java).notify(41, notification())
             handler.postDelayed(this, 1000)
         }
     }
-    override fun onCreate() { super.onCreate(); sensors = getSystemService(SENSOR_SERVICE) as SensorManager }
+    override fun onCreate() { super.onCreate() }
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "STOP") { if (::record.isInitialized) finish(false) else stopSelf(); return START_NOT_STICKY }
@@ -60,10 +66,11 @@ class ColdService : Service(), SensorEventListener {
         checkpoint()
         wake = (getSystemService(POWER_SERVICE) as PowerManager).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EasyHof:ColdSession").apply { acquire(2 * 60 * 60 * 1000L + 10000) }
         if (hasHr) {
-            val sensor = sensors.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-            status = if (sensor == null) "unavailable" else "waiting"
-            if (sensor != null && !sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)) status = "unavailable"
+            heart = PlatformHeartRateSource(this, { rate, time -> acceptSample(rate, time) }, { next ->
+                status = next; if (next != "ok") bpm = null
+            }).also { it.start() }
         }
+        if (!BreathingPulse.watch(this)) sendPulseRequest(false)
         handler.post(beat)
         return START_NOT_STICKY
     }
@@ -83,34 +90,43 @@ class ColdService : Service(), SensorEventListener {
         val fresh = bpm != null && SystemClock.elapsedRealtime() - lastSample < 30000
         result.put("bpm", if (fresh) bpm else JSONObject.NULL)
         result.put("hrStatus", if (!fresh && bpm != null) "stale" else status)
+        if (!BreathingPulse.watch(this)) result.put("hrStatus", "watch")
+        BreathingPulse.attachLive(this, result)
         return result
+    }
+    private fun sendPulseRequest(ended: Boolean) {
+        if (BreathingPulse.watch(this)) return
+        val request = JSONObject().put("id", record.getString("id")).put("startedAt", record.getString("startedAt"))
+            .put("kind", record.getString("kind")).put("elapsedMs", SystemClock.elapsedRealtime() - startElapsed)
+            .put("paused", false).put("ended", ended).put("sentAt", System.currentTimeMillis()).put("language", if (german) "de" else "en")
+        BreathingPulse.sendRequest(this, request)
     }
     fun finish(interrupted: Boolean) {
         handler.removeCallbacks(beat)
-        record.put("durationMs", SystemClock.elapsedRealtime() - startElapsed).put("interrupted", interrupted)
+        record.put("durationMs", SystemClock.elapsedRealtime() - startElapsed).put("interrupted", interrupted).put("endedAt", Instant.now().toString())
+        if (BreathingPulse.watch(this)) BreathingPulse.publish(this, snapshot().put("sentAt", System.currentTimeMillis()).put("ended", true))
+        else sendPulseRequest(true)
         SessionStore.newSession(this, record)
         SessionStore.active(this, null)
-        sensors.unregisterListener(this)
+        heart?.stop()
         if (wake?.isHeld == true) wake?.release()
         instance = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
-    override fun onSensorChanged(event: SensorEvent) {
-        val rate = event.values.firstOrNull()?.toInt() ?: return
-        if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE || event.accuracy == SensorManager.SENSOR_STATUS_NO_CONTACT || rate !in 25..240) {
-            status = "unreliable"; bpm = null; return
+    private fun acceptSample(rate: Int, time: Long) {
+        if (time < startElapsed || time - lastSample < 1000 || time - startElapsed > 7200000) return
+        lastSample = time; bpm = rate; status = "ok"
+        val duration = time - startElapsed
+        record.put("durationMs", maxOf(record.optLong("durationMs"), duration))
+        val before = record.optJSONArray("hrSamples")?.length() ?: 0
+        HeartRateTrace.append(record, duration, rate)
+        if ((record.optJSONArray("hrSamples")?.length() ?: 0) > before) {
+            val epochs = record.optJSONArray("hrEpochSamples") ?: org.json.JSONArray().also { record.put("hrEpochSamples", it) }
+            epochs.put(org.json.JSONArray().put(bootEpoch + time).put(rate))
         }
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastSample < 1000) return
-        lastSample = now; bpm = rate; status = "ok"
-        record.put("durationMs", now - startElapsed)
-        HeartRateTrace.append(record, now - startElapsed, rate)
         record.put("hrCount", record.optInt("hrCount") + 1).put("hrSum", record.optLong("hrSum") + rate)
         record.put("hrMin", minOf(record.optInt("hrMin", rate), rate)).put("hrMax", maxOf(record.optInt("hrMax", rate), rate))
-    }
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        if (accuracy <= SensorManager.SENSOR_STATUS_UNRELIABLE) { status = "unreliable"; bpm = null }
     }
     private fun vibrate() {
         val settings = SessionStore.setting(this, null)
@@ -119,7 +135,7 @@ class ColdService : Service(), SensorEventListener {
         vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 600, 180, 600, 180, 900), intArrayOf(0, 255, 0, 255, 0, 255), -1))
     }
     override fun onDestroy() {
-        handler.removeCallbacks(beat); sensors.unregisterListener(this)
+        handler.removeCallbacks(beat); heart?.stop()
         if (wake?.isHeld == true) wake?.release()
         if (instance === this) { checkpoint(); instance = null }
         super.onDestroy()

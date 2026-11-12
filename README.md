@@ -143,3 +143,21 @@ through Obtainium using the repository URL and the `^easy-hof-phone\.apk$` filte
 Use **Settings → Install watch app** to open Google Play and install Easy Hof
 on your watch. Watch updates are delivered through Google Play. No Easy Hof account,
 subscription or analytics.
+
+### Live-Puls und Health Connect
+
+Ab Version 1.4.0 nutzt die Uhr **Health Services** für den Live-Puls während
+Atmung und Kältetraining (Wear OS 3 oder neuer). Telefon und Uhr tauschen aktuelle
+Werte direkt aus; abgeschlossene Einheiten werden dauerhaft synchronisiert.
+Ein bereits laufendes Training einer anderen App wird nicht übernommen.
+
+Unter **Einstellungen → Health Connect** lässt sich am Telefon optional ein Archiv
+für Trainingszeiten und gemessene Pulsverläufe aktivieren. Easy Hof liest keine
+Daten anderer Apps. Die eigene Historie, Temperatur und Atemhaltezeiten bleiben
+lokal verfügbar. Ältere Atemeinheiten ohne zuverlässige Endzeit bleiben ausschließlich
+in Easy Hof. Ohne Freigabe funktionieren Timer, Übungen und lokale Historie weiter.
+Health Connect muss auf dem Telefon verfügbar sein (ab Android 14 Teil des Systems).
+Nach dem Trennen bleiben bereits archivierte Kopien in Health Connect erhalten.
+
+Die Uhrenansicht verwendet einen schwarzen OLED-Hintergrund mit dezenten Bergen
+und kontrastreichen 3D-Buttons.

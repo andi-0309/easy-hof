@@ -48,6 +48,7 @@ object SessionStore {
             records[index] = incoming
         } else records.add(incoming)
         check(prefs(context).edit().putString("sessions", JSONArray(records).toString()).commit()) { "Storage unavailable" }
+        HealthArchive.changed(context)
         return true
     }
     fun newSession(context: Context, record: JSONObject): JSONObject {
@@ -90,12 +91,13 @@ object SessionStore {
         }
         val sessions = all(context).filter { !it.optBoolean("deleted") }.sortedByDescending { it.optString("startedAt") }
         return JSONObject().put("sessions", JSONArray(sessions))
-            .put("active", ColdService.instance?.snapshot() ?: JSONObject.NULL)
+            .put("active", ColdService.instance?.snapshot() ?: BreathingPulse.remoteCold(context) ?: JSONObject.NULL)
             .put("phoneAppAvailable", if (prefs(context).contains("phoneAppAvailable")) prefs(context).getBoolean("phoneAppAvailable", false) else JSONObject.NULL)
             .put("companionSettings", setting(context).takeIf { it.isNotBlank() }?.let { JSONObject(it) } ?: JSONObject.NULL)
             .put("breathingRequest", BreathingPulse.request(context) ?: JSONObject.NULL)
             .put("watchPulse", BreathingPulseService.instance?.snapshot() ?: JSONObject.NULL)
             .put("breathingPulse", BreathingPulse.latest(context) ?: JSONObject.NULL)
+            .put("healthConnect", HealthArchive.status(context))
             .put("syncStatus", prefs(context).getString("syncStatus", "ready"))
             .put("lastReceived", prefs(context).getString("lastReceived", null))
     }

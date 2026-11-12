@@ -14,6 +14,19 @@ object HeartRateTrace {
         samples.put(JSONArray().put(elapsedMs).put(bpm))
     }
     fun valid(record: JSONObject): Boolean {
+        val epoch = record.optJSONArray("hrEpochSamples")
+        if (record.has("hrEpochSamples") && epoch == null) return false
+        if (epoch != null) {
+            if (epoch.length() > MAX_SAMPLES) return false
+            var lastEpoch = -1L
+            for (i in 0 until epoch.length()) {
+                val point = epoch.optJSONArray(i) ?: return false
+                if (point.length() != 2 || point.opt(0) !is Number || point.opt(1) !is Number) return false
+                val time = point.optDouble(0, Double.NaN); val rate = point.optDouble(1, Double.NaN)
+                if (!time.isFinite() || time != time.toLong().toDouble() || time.toLong() !in 0..253402300799999L || time.toLong() <= lastEpoch || rate !in 25.0..240.0 || rate != rate.toInt().toDouble()) return false
+                lastEpoch = time.toLong()
+            }
+        }
         if (!record.has("hrSamples")) return true
         val samples = record.optJSONArray("hrSamples") ?: return false
         if (samples.length() > MAX_SAMPLES) return false

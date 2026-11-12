@@ -19,7 +19,7 @@ android {
     flavorDimensions += "device"
     productFlavors {
         create("phone") { dimension = "device" }
-        create("wear") { dimension = "device" }
+        create("wear") { dimension = "device"; minSdk = 30 }
     }
     signingConfigs {
         if (System.getenv("KEYSTORE_PATH") != null) {
@@ -41,6 +41,9 @@ kotlin { compilerOptions { jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget
 flutter { source = "../.." }
 dependencies {
     implementation("com.google.android.gms:play-services-wearable:20.0.1")
+    "wearImplementation"("androidx.health:health-services-client:1.1.0")
+    "phoneImplementation"("androidx.health.connect:connect-client:1.1.0")
+    "phoneImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
 }

@@ -317,6 +317,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
       'kind': 'breathing',
       'startedAt': started['breathing'],
       'durationMs': b.totalMs,
+      'endedAt': DateTime.now().toUtc().toIso8601String(),
       'retentions': b.retentions,
       'rounds': b.rounds,
       'breaths': b.breaths,
@@ -335,6 +336,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         'json': jsonEncode({
           'id': breathingId,
           'startedAt': started['breathing'],
+          'kind': 'breathing',
           'elapsedMs': b.totalMs,
           'paused': b.paused,
           'ended': ended || completing,
@@ -440,7 +442,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
         const Locale('en'),
       }.toList(),
       builder: (context, child) =>
-          NordicBackdrop(breath: landscape, child: child!),
+          NordicBackdrop(breath: landscape, oled: isWear, child: child!),
       theme: nordicTheme(Brightness.light, wear: isWear),
       darkTheme: nordicTheme(Brightness.dark, wear: isWear),
       themeMode: isWear ? ThemeMode.dark : ThemeMode.system,
@@ -761,16 +763,15 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           if (a['temperature'] != null)
             Center(child: Text('${a['temperature']} °C')),
           space(),
-          if (isWear)
-            Center(
-              child: Text(
-                bpm == null
-                    ? t('♥ Kein Messwert', '♥ No reading')
-                    : '♥ ${(bpm as num).round()} bpm',
-                style: const TextStyle(fontSize: 20),
-              ),
+          Center(
+            child: Text(
+              bpm == null
+                  ? t('♥ Kein Messwert', '♥ No reading')
+                  : '♥ ${(bpm as num).round()} bpm',
+              style: const TextStyle(fontSize: 20),
             ),
-          if (isWear && a['hrStatus'] != null)
+          ),
+          if (a['hrStatus'] != null)
             Text(
               hrStatus(a['hrStatus'].toString()),
               textAlign: TextAlign.center,
@@ -893,6 +894,8 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
   }
 
   String hrStatus(String status) => switch (status) {
+    'watch' => t('Uhr für Pulsmessung öffnen', 'Open watch for heart rate'),
+    'busy' => t('Ein anderes Training ist aktiv', 'Another workout is active'),
     'denied' => t('Pulszugriff nicht erlaubt', 'Heart rate access not granted'),
     'unavailable' => t('Kein Pulssensor verfügbar', 'No heart rate sensor'),
     'waiting' => t('Warte auf Sensor …', 'Waiting for sensor …'),
@@ -1031,6 +1034,60 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
     ]),
     if (!isWear)
       panel([
+        const Icon(Icons.favorite_rounded, size: 30),
+        space(),
+        const Text(
+          'Health Connect',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+        space(),
+        Text(
+          t(
+            'Optionales Archiv auf deinem Telefon für Trainingszeiten und Pulsverläufe. Temperatur und Atemhaltezeiten bleiben in Easy Hof. Kein Cloud-Konto erforderlich.',
+            'Optional archive on your phone for training times and heart-rate traces. Temperature and breath holds stay in Easy Hof. No cloud account required.',
+          ),
+        ),
+        space(),
+        Text(healthConnectLabel()),
+        space(),
+        NordicButton.icon(
+          icon: const Icon(Icons.health_and_safety_rounded),
+          label: Text(t('Verbinden / Freigabe', 'Connect / permissions')),
+          onPressed: busy
+              ? null
+              : () => action(() async {
+                  await Device.call('connectHealthConnect');
+                  await refresh();
+                }),
+        ),
+        if (data['healthConnect'] is Map &&
+            data['healthConnect']['enabled'] == true) ...[
+          const SizedBox(height: 8),
+          NordicButton.icon(
+            icon: const Icon(Icons.sync),
+            label: Text(t('Archiv aktualisieren', 'Update archive')),
+            onPressed: busy
+                ? null
+                : () => action(() async {
+                    await Device.call('syncHealthConnect');
+                    await refresh();
+                  }),
+          ),
+          const SizedBox(height: 8),
+          NordicButton.icon(
+            icon: const Icon(Icons.link_off),
+            label: Text(t('Verbindung trennen', 'Disconnect')),
+            onPressed: busy
+                ? null
+                : () => action(() async {
+                    await Device.call('disconnectHealthConnect');
+                    await refresh();
+                  }),
+          ),
+        ],
+      ]),
+    if (!isWear)
+      panel([
         Text(
           t('Lokales Backup', 'Local backup'),
           style: const TextStyle(fontSize: 20),
@@ -1084,9 +1141,29 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.3.2'),
+      const Text('Version 1.4.0'),
     ]),
   ];
+
+  String healthConnectLabel() => switch (data['healthConnect'] is Map
+      ? data['healthConnect']['state']
+      : 'off') {
+    'synced' => t('Archiv synchronisiert', 'Archive synchronized'),
+    'queued' => t('Archivierung läuft …', 'Archiving …'),
+    'permission' => t(
+      'Freigabe fehlt oder wurde widerrufen',
+      'Permission missing or revoked',
+    ),
+    'unavailable' => t(
+      'Health Connect nicht verfügbar. Bitte in den Android-Einstellungen prüfen.',
+      'Health Connect unavailable. Check Android settings.',
+    ),
+    'error' => t(
+      'Archiv konnte nicht aktualisiert werden. Lokale Daten bleiben erhalten.',
+      'Could not update archive. Local data is preserved.',
+    ),
+    _ => t('Nicht verbunden', 'Not connected'),
+  };
 
   String syncLabel() => switch (data['syncStatus']) {
     'queued' => t('Übertragung vorgemerkt', 'Transfer queued'),

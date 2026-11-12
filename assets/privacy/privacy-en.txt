@@ -1,5 +1,5 @@
 Privacy policy – Easy Hof
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 Online: https://github.com/andi-0309/easy-hof/blob/main/PRIVACY.md
 
 1. Scope and contact
@@ -54,3 +54,11 @@ This public policy and source code are hosted on GitHub. Visiting the GitHub pag
 You choose when to start training and whether to grant heart-rate permission. Manage permissions in system settings, delete sessions in the app and export history. Use the contact above for privacy questions.
 
 This policy is updated when data processing changes. The online policy describes the version indicated there; each app build includes its corresponding offline copy.
+
+8. Optional Health Connect archive from version 1.4.0
+
+The watch uses Health Services to measure heart rate during active training. Live cold sessions can also exchange heart-rate data with the phone. With connectivity and the watch app open, recording for an active phone session can resume automatically if sensor permission is already granted. New traces additionally store actual measurement timestamps.
+
+Health Connect on the phone is off by default. Only after you enable it in settings and grant WRITE_EXERCISE and WRITE_HEART_RATE does Easy Hof write training intervals and available pulse samples to Health Connect. It does not read other apps’ records. Water temperature and breath-hold times remain in local history. Older breathing sessions without a reliable end timestamp are not exported; missing pulse data is not reconstructed. Local history remains available without Health Connect.
+
+New and updated sessions are transferred while the app is open or following device synchronization. Deleting a session also deletes its Easy Hof records in Health Connect while archive integration is enabled; failed transfers are retried at the next sync. Disconnecting leaves existing Health Connect copies in place. Delete them there, or reconnect to process pending deletions. Other apps you authorize in Health Connect can access the archived data. Easy Hof requires no cloud account and sends no data to a developer server.

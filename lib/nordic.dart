@@ -21,7 +21,11 @@ ThemeData nordicTheme(Brightness brightness, {bool wear = false}) {
         onPrimaryContainer: dark ? const Color(0xFFE8F3F4) : fjord,
         secondary: sun,
         onSecondary: fjord,
-        surface: dark ? const Color(0xFF0B303B) : const Color(0xFFF0FAFC),
+        surface: wear
+            ? Colors.black
+            : dark
+            ? const Color(0xFF0B303B)
+            : const Color(0xFFF0FAFC),
         onSurface: dark ? const Color(0xFFE8F3F4) : fjord,
         onSurfaceVariant: dark
             ? const Color(0xFFBBE7EE)
@@ -160,7 +164,13 @@ ButtonStyle _frameworkButtonStyle(ColorScheme scheme, bool wear) =>
 
 /// Resolution-independent ridgelines appear behind every route, including Wear OS.
 class NordicBackdrop extends StatelessWidget {
-  const NordicBackdrop({super.key, required this.child, this.breath});
+  const NordicBackdrop({
+    super.key,
+    required this.child,
+    this.breath,
+    this.oled = false,
+  });
+  final bool oled;
   final ValueListenable<double>? breath;
   final Widget child;
   @override
@@ -190,6 +200,7 @@ class NordicBackdrop extends StatelessWidget {
                     painter: MountainPainter(
                       dark: Theme.of(context).brightness == Brightness.dark,
                       breath: value,
+                      oled: oled,
                     ),
                   ),
                 ),
@@ -206,7 +217,12 @@ class NordicBackdrop extends StatelessWidget {
 /// A single scenic background: layered snowy ridges, foothills, trees and mist.
 /// Coordinates are normalized so no bitmap or foreground illustration is needed.
 class MountainPainter extends CustomPainter {
-  const MountainPainter({required this.dark, this.breath = 0});
+  const MountainPainter({
+    required this.dark,
+    this.breath = 0,
+    this.oled = false,
+  });
+  final bool oled;
   final bool dark;
   final double breath;
 
@@ -229,8 +245,16 @@ class MountainPainter extends CustomPainter {
       w,
       h * (compact ? .38 : .235),
     );
-    final skyTop = dark ? const Color(0xFF123D4B) : const Color(0xFFF0FAFC);
-    final skyBottom = dark ? const Color(0xFF0B303B) : const Color(0xFFEAF7F9);
+    final skyTop = oled
+        ? Colors.black
+        : dark
+        ? const Color(0xFF123D4B)
+        : const Color(0xFFF0FAFC);
+    final skyBottom = oled
+        ? Colors.black
+        : dark
+        ? const Color(0xFF0B303B)
+        : const Color(0xFFEAF7F9);
     canvas.drawRect(
       Offset.zero & size,
       Paint()
@@ -244,7 +268,10 @@ class MountainPainter extends CustomPainter {
     canvas.translate(band.left, band.top);
     final s = band.size;
     final atmosphere = Rect.fromLTWH(0, -s.height * .4, w, s.height * 1.7);
-    canvas.saveLayer(atmosphere, Paint());
+    canvas.saveLayer(
+      atmosphere,
+      Paint()..color = Colors.white.withValues(alpha: oled ? .20 : 1),
+    );
     final sw = s.width, sh = s.height;
     final expansion = Curves.easeInOutSine.transform(breath.clamp(0.0, 1.0));
     // Every depth plane grows around the same bottom-center anchor. Peaks,
@@ -482,7 +509,7 @@ class MountainPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(MountainPainter old) =>
-      old.dark != dark || old.breath != breath;
+      old.dark != dark || old.breath != breath || old.oled != oled;
 }
 
 class NordicCard extends StatelessWidget {

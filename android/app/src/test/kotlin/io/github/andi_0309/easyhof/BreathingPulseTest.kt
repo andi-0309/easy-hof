@@ -55,4 +55,26 @@ class BreathingPulseTest {
         assertTrue(r.getBoolean("deleted"))
         assertFalse(r.has("hrSamples"))
     }
+    @Test fun coldLivePacketsAreEphemeralAndFinalPacketWins() {
+        val c = RuntimeEnvironment.getApplication()
+        val now = System.currentTimeMillis()
+        val live = pulse(now).put("id", "cold-uuid").put("kind", "bath").put("liveOnly", true)
+        BreathingPulse.receivePulse(c, live)
+        assertTrue(SessionStore.all(c).isEmpty())
+        assertEquals("cold-uuid", BreathingPulse.remoteCold(c)?.getString("id"))
+        val ended = pulse(now + 1).put("id", "cold-uuid").put("kind", "bath").put("ended", true)
+        BreathingPulse.receivePulse(c, ended)
+        assertNull(BreathingPulse.remoteCold(c))
+        assertTrue(BreathingPulse.forId(c, "cold-uuid")!!.getBoolean("ended"))
+    }
+    @Test fun coldRecordsReceiveTheirMeasuredPulseTrace() {
+        val c = RuntimeEnvironment.getApplication()
+        val r = record().put("id", "cold-unit-test").put("kind", "shower")
+        r.remove("retentions")
+        BreathingPulse.receivePulse(c, pulse().put("id", "cold-unit-test").put("kind", "shower"))
+        BreathingPulse.attach(c, r)
+        assertEquals(2, r.getInt("hrCount"))
+        assertTrue(SessionStore.valid(r))
+    }
+
 }

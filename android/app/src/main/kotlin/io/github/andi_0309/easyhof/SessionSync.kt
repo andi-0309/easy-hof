@@ -2,6 +2,7 @@ package io.github.andi_0309.easyhof
 
 import android.content.Context
 import android.net.Uri
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -73,6 +74,18 @@ object SessionSync {
 }
 
 class SyncService : WearableListenerService() {
+    override fun onMessageReceived(event: MessageEvent) {
+        if (event.data.size > 90000) return
+        if (event.path == LiveLink.STOP) {
+            try {
+                val id = JSONObject(String(event.data, Charsets.UTF_8)).optString("id")
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    val service = ColdService.instance
+                    if (service?.snapshot()?.optString("id") == id) service.finish(false)
+                }
+            } catch (_: Exception) { }
+        } else SessionSync.importItem(this, event.path, String(event.data, Charsets.UTF_8))
+    }
     override fun onDataChanged(events: DataEventBuffer) {
         for (event in events) if (event.type == DataEvent.TYPE_CHANGED) {
             try { SessionSync.importItem(this, event.dataItem.uri.path, DataMapItem.fromDataItem(event.dataItem).dataMap.getString("record")) }

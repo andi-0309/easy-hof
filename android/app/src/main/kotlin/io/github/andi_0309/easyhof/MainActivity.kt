@@ -18,6 +18,20 @@ import android.view.ViewConfiguration
 import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
+    companion object {
+        private var visible: MainActivity? = null
+        fun maybeStartPulse() {
+            val activity = visible ?: return
+            if (!BreathingPulse.watch(activity) || ColdService.instance != null || BreathingPulseService.instance != null) return
+            val request = BreathingPulse.request(activity) ?: return
+            val permission = if (Build.VERSION.SDK_INT >= 36) "android.permission.health.READ_HEART_RATE" else Manifest.permission.BODY_SENSORS
+            if (request.optBoolean("ended") || BreathingPulse.ignored(activity, request.optString("id")) ||
+                System.currentTimeMillis() - request.optLong("sentAt") !in 0..30000 || activity.checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) return
+            try { activity.startForegroundService(Intent(activity, BreathingPulseService::class.java)) } catch (_: Exception) { }
+        }
+    }
+    override fun onResume() { super.onResume(); visible = this; maybeStartPulse() }
+    override fun onPause() { if (visible === this) visible = null; super.onPause() }
     private var rotaryChannel: MethodChannel? = null
     private val cueAudio = CueAudioPlayer()
     private val cachedClips = mutableMapOf<String, File>()
@@ -42,9 +56,13 @@ class MainActivity : FlutterActivity() {
                     "breathingPulse" -> { BreathingPulse.sendRequest(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }
                     "startBreathingPulse" -> {
                         require(BreathingPulse.watch(this) && ColdService.instance == null) { "Finish cold training first" }
+                        BreathingPulse.ignoreSession(this, null)
                         startForegroundService(Intent(this, BreathingPulseService::class.java)); result.success(null)
                     }
-                    "stopBreathingPulse" -> { BreathingPulseService.instance?.finish(); result.success(null) }
+                    "stopBreathingPulse" -> { BreathingPulse.ignoreSession(this, BreathingPulse.request(this)?.optString("id")); BreathingPulseService.instance?.finish(); result.success(null) }
+                    "connectHealthConnect" -> HealthArchive.connect(this, result)
+                    "syncHealthConnect" -> { HealthArchive.changed(this); result.success(null) }
+                    "disconnectHealthConnect" -> { HealthArchive.disconnect(this); result.success(null) }
                     "snapshot" -> result.success(SessionStore.snapshot(this).toString())
                     "settings" -> { val value = SessionStore.setting(this, call.argument<String>("json")); if (call.argument<String>("json") != null) SessionSync.publishSettings(this); result.success(value) }
                     "saveSession" -> { SessionStore.newSession(this, JSONObject(call.argument<String>("json")!!)); result.success(null) }
@@ -91,12 +109,19 @@ class MainActivity : FlutterActivity() {
                         startForegroundService(intent)
                         result.success(null)
                     }
-                    "stopCold" -> { ColdService.instance?.finish(false); result.success(null) }
+                    "stopCold" -> {
+                        val local = ColdService.instance
+                        val remote = BreathingPulse.remoteCold(this)
+                        if (local != null) { local.finish(false); result.success(null) }
+                        else if (remote != null) LiveLink.stopRemote(this, remote.getString("id"), result)
+                        else result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             } catch (e: Exception) { result.error("device", e.message ?: "Device operation failed", null) }
         }
         SessionSync.sync(this)
+        HealthArchive.changed(this)
     }
     private fun playCue(cue: String, language: String, seconds: Int) {
         require(language in setOf("de", "en")) { "Unknown audio language" }
@@ -132,6 +157,7 @@ class MainActivity : FlutterActivity() {
     @Deprecated("Android activity result bridge")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 83) { HealthArchive.permissionReturned(this, resultCode, data); return }
         if (requestCode != 81 && requestCode != 82) return
         val result = documentResult ?: return
         documentResult = null
@@ -168,7 +194,9 @@ class MainActivity : FlutterActivity() {
     }
     override fun onDestroy() {
         stopAudio()
+        if (visible === this) visible = null
         rotaryChannel = null
+        HealthArchive.releasePermissionRequest()
         permissionResult?.success(false); permissionResult = null
         documentResult?.success(false); documentResult = null
         super.onDestroy()

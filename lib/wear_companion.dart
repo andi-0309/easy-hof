@@ -160,7 +160,13 @@ class _WearCompanionState extends State<WearCompanion> {
         ]);
       } else if (pulse != null) {
         children.addAll([
-          heading(t('Atmen', 'Breathe')),
+          heading(
+            pulse['kind'] == 'shower'
+                ? t('Dusche', 'Shower')
+                : pulse['kind'] == 'bath'
+                ? t('Eisbad', 'Ice bath')
+                : t('Atmen', 'Breathe'),
+          ),
           Text(
             pulse['bpm'] == null ? '♥ —' : '♥ ${pulse['bpm']}',
             textAlign: TextAlign.center,
@@ -175,7 +181,7 @@ class _WearCompanionState extends State<WearCompanion> {
           ),
           gap(),
           button(
-            t('Beenden', 'Finish'),
+            t('Puls aus', 'Stop pulse'),
             widget.onStopPulse,
             tone: NordicTone.sun,
           ),

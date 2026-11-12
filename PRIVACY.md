@@ -1,6 +1,6 @@
 # Datenschutzerklärung – Easy Hof
 
-Stand: 2026-11-11
+Stand: 2026-11-12
 
 ## 1. Geltungsbereich und Kontakt
 
@@ -55,12 +55,20 @@ Du entscheidest, wann du ein Training startest und ob du die Herzfrequenzberecht
 
 Bei Änderungen der Datenverarbeitung wird diese Erklärung aktualisiert. Die veröffentlichte Onlinefassung gilt für den dort beschriebenen Versionsstand; die App enthält die zu ihrem Build gehörende Offlinefassung.
 
+## 8. Optionales Health-Connect-Archiv ab Version 1.4.0
+
+Die Uhr verwendet Health Services zur Pulsmessung während aktiver Trainings. Laufende Kälteeinheiten können ebenfalls Live-Pulswerte mit dem Telefon austauschen. Bei verfügbarer Verbindung und geöffneter Uhren-App kann die Messung für eine laufende Telefon-Einheit automatisch fortgesetzt werden, sofern du die Sensorberechtigung bereits erteilt hast. Für neue Pulsverläufe werden zusätzlich die tatsächlichen Messzeitpunkte gespeichert.
+
+Health Connect am Telefon ist standardmäßig ausgeschaltet. Erst nach deiner Aktivierung in den Einstellungen und Freigabe von WRITE_EXERCISE und WRITE_HEART_RATE schreibt Easy Hof Trainingszeiträume und vorhandene Pulsmessungen in Health Connect. Es werden keine Daten anderer Apps gelesen. Wassertemperatur und Atemhaltezeiten verbleiben in der lokalen Historie. Ältere Atemeinheiten ohne zuverlässigen Endzeitpunkt werden nicht exportiert; fehlende Pulswerte werden nicht rekonstruiert. Die lokale Historie bleibt auch ohne Health Connect verfügbar.
+
+Neue und geänderte Einheiten werden bei geöffneter App beziehungsweise nach dem Geräteabgleich übertragen. Das Löschen einer Einheit entfernt bei aktiver Verbindung zum Archiv auch ihre von Easy Hof geschriebenen Health-Connect-Daten; fehlgeschlagene Übertragungen werden beim nächsten Abgleich erneut versucht. Nach dem Trennen bleiben bestehende Kopien in Health Connect erhalten. Du kannst sie dort löschen oder die Verbindung erneut aktivieren, um ausstehende Löschungen abzugleichen. Andere Apps mit deiner Health-Connect-Freigabe können auf die dort gespeicherten Daten zugreifen. Easy Hof benötigt dafür kein Cloud-Konto und überträgt keine Daten an einen Entwickler-Server.
+
 
 ---
 
 # Privacy policy – Easy Hof
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 ## 1. Scope and contact
 
@@ -114,6 +122,14 @@ This public policy and source code are hosted on GitHub. Visiting the GitHub pag
 You choose when to start training and whether to grant heart-rate permission. Manage permissions in system settings, delete sessions in the app and export history. Use the contact above for privacy questions.
 
 This policy is updated when data processing changes. The online policy describes the version indicated there; each app build includes its corresponding offline copy.
+
+## 8. Optional Health Connect archive from version 1.4.0
+
+The watch uses Health Services to measure heart rate during active training. Live cold sessions can also exchange heart-rate data with the phone. With connectivity and the watch app open, recording for an active phone session can resume automatically if sensor permission is already granted. New traces additionally store actual measurement timestamps.
+
+Health Connect on the phone is off by default. Only after you enable it in settings and grant WRITE_EXERCISE and WRITE_HEART_RATE does Easy Hof write training intervals and available pulse samples to Health Connect. It does not read other apps’ records. Water temperature and breath-hold times remain in local history. Older breathing sessions without a reliable end timestamp are not exported; missing pulse data is not reconstructed. Local history remains available without Health Connect.
+
+New and updated sessions are transferred while the app is open or following device synchronization. Deleting a session also deletes its Easy Hof records in Health Connect while archive integration is enabled; failed transfers are retried at the next sync. Disconnecting leaves existing Health Connect copies in place. Delete them there, or reconnect to process pending deletions. Other apps you authorize in Health Connect can access the archived data. Easy Hof requires no cloud account and sends no data to a developer server.
 
 
 ---
