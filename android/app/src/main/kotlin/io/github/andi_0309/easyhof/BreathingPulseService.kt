@@ -46,7 +46,7 @@ class BreathingPulseService : Service() {
         manager.createNotificationChannel(NotificationChannel("breathing-pulse", "Easy Hof · Puls", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 3, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val notification = Notification.Builder(this, "breathing-pulse").setSmallIcon(R.drawable.ic_stat_cold)
-            .setContentTitle(if (JSONObject(SessionStore.setting(this).ifBlank { "{}" }).optString("language") == "de") "Atemtraining auf der Uhr" else "Watch breathing training")
+            .setContentTitle(if (JSONObject(SessionStore.setting(this).ifBlank { "{}" }).optString("language") == "de") "Pulsmessung auf der Uhr" else "Watch heart-rate recording")
             .setContentIntent(open).setOngoing(true).build()
         if (Build.VERSION.SDK_INT >= 34) startForeground(42, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         else startForeground(42, notification)
@@ -90,9 +90,9 @@ class BreathingPulseService : Service() {
             val epochs = record.optJSONArray("hrEpochSamples") ?: org.json.JSONArray().also { record.put("hrEpochSamples", it) }
             epochs.put(org.json.JSONArray().put(bootEpoch + time).put(rate))
         }
-        BreathingPulse.publishLive(this, snapshot())
         record.put("hrCount", record.optInt("hrCount") + 1).put("hrSum", record.optLong("hrSum") + rate)
         record.put("hrMin", minOf(record.optInt("hrMin", rate), rate)).put("hrMax", maxOf(record.optInt("hrMax", rate), rate))
+        BreathingPulse.publishLive(this, snapshot())
     }
     fun snapshot(): JSONObject = (if (::record.isInitialized) JSONObject(record.toString()) else JSONObject().put("waiting", true)).put("sentAt", System.currentTimeMillis())
         .put("hrStatus", hrStatus)
@@ -100,7 +100,7 @@ class BreathingPulseService : Service() {
     private fun publish() { if (::record.isInitialized) BreathingPulse.publish(this, snapshot()) }
     fun finish() {
         if (instance !== this) return
-        handler.removeCallbacks(beat); heart?.stop()
+        handler.removeCallbacks(beat); heart?.stop(); bpm = null; hrStatus = "stopped"
         if (::record.isInitialized) record.put("ended", true)
         publish(); instance = null; if (wake?.isHeld == true) wake?.release(); stopForeground(STOP_FOREGROUND_REMOVE); stopSelf()
     }

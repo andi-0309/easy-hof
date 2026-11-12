@@ -7,7 +7,7 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import org.json.JSONObject
 
-/** Phone owns the exercise. Watch contributes only optional, session-keyed pulse data. */
+/** Session-keyed live pulse transport; completed training history stays in SessionStore. */
 object BreathingPulse {
     const val REQUEST = "/easyhof/breathing/request"
     const val PREFIX = "/easyhof/breathing/pulse/"
@@ -15,12 +15,13 @@ object BreathingPulse {
     private fun prefs(c: Context) = c.getSharedPreferences("easy_hof_pulse", Context.MODE_PRIVATE)
     fun watch(c: Context) = c.packageManager.hasSystemFeature("android.hardware.type.watch")
     fun validRequest(r: JSONObject): Boolean = r.optString("id").matches(Regex("[A-Za-z0-9-]{1,120}")) &&
-        r.optLong("elapsedMs", -1) in 0..7200000 && r.optLong("sentAt") > 0 && r.optString("startedAt").isNotBlank()
+        r.optLong("elapsedMs", -1) in 0..7200000 && r.optLong("sentAt") > 0 && r.optString("startedAt").isNotBlank() &&
+        r.optString("kind", "breathing") in listOf("breathing", "shower", "bath")
     fun request(c: Context): JSONObject? = prefs(c).getString("request", null)?.let { JSONObject(it) }
     fun receiveRequest(c: Context, r: JSONObject) {
         if (!watch(c) || !validRequest(r)) return
         val old = request(c)
-        if (old?.optString("id") == r.optString("id") && old.optLong("sentAt") > r.optLong("sentAt")) return
+        if (old?.optString("id") == r.optString("id") && (old.optLong("sentAt") > r.optLong("sentAt") || old.toString() == r.toString())) return
         if (old?.optString("id") == r.optString("id") && old.optBoolean("ended") && !r.optBoolean("ended")) return
         prefs(c).edit().putString("request", r.toString()).apply()
         android.os.Handler(android.os.Looper.getMainLooper()).post {
@@ -50,6 +51,7 @@ object BreathingPulse {
     }
     fun validPulse(r: JSONObject): Boolean = r.optString("id").matches(Regex("[A-Za-z0-9-]{1,120}")) &&
         r.optLong("durationMs", -1) in 0..7200000 && r.optLong("sentAt") > 0 && HeartRateTrace.valid(r) &&
+        r.optString("kind", "breathing") in listOf("breathing", "shower", "bath") &&
         r.optInt("hrCount", -1) in 0..7201 && r.optLong("hrSum", -1) in 0..1728240 &&
         (r.optInt("hrCount") == 0 || (r.optInt("hrMin") in 25..240 && r.optInt("hrMax") in 25..240)) &&
         (r.isNull("bpm") || r.optInt("bpm") in 25..240)

@@ -80,4 +80,28 @@ void main() {
     expect(calls.any((c) => c.method == 'stopSpeech'), isTrue);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('Health Connect stays off until explicitly connected', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const EasyHof());
+    await tester.pumpAndSettle();
+    expect(calls.any((c) => c.method == 'connectHealthConnect'), isFalse);
+    await tester.tap(find.byIcon(Icons.tune_rounded));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Connect / permissions'),
+      350,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Not connected'), findsOneWidget);
+    await tester.tap(find.text('Connect / permissions'));
+    await tester.pumpAndSettle();
+    expect(
+      calls.where((c) => c.method == 'connectHealthConnect'),
+      hasLength(1),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
 }

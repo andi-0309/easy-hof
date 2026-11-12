@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_hof/main.dart';
 import 'package:easy_hof/platform.dart';
+import 'package:easy_hof/nordic.dart';
 import 'package:easy_hof/wear_companion.dart';
 import 'nordic_release_test.dart' show screenshot;
 
@@ -82,6 +83,14 @@ void main() {
     await tester.pumpWidget(RepaintBoundary(key: key, child: const EasyHof()));
     await tester.pumpAndSettle();
     expect(find.text('Zielzeit'), findsNothing);
+    expect(
+      tester.widget<NordicBackdrop>(find.byType(NordicBackdrop)).oled,
+      isTrue,
+    );
+    expect(
+      Theme.of(tester.element(find.byType(WearCompanion))).colorScheme.surface,
+      Colors.black,
+    );
     expect(find.text('Atmen').hitTestable(), findsOneWidget);
     expect(find.byIcon(Icons.settings), findsNothing);
     expect(find.byIcon(Icons.history), findsNothing);
@@ -113,6 +122,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Atmen').hitTestable(), findsOneWidget);
     expect(find.text('Zielzeit'), findsNothing);
+    expect(
+      tester.widget<NordicBackdrop>(find.byType(NordicBackdrop)).oled,
+      isTrue,
+    );
+    expect(
+      Theme.of(tester.element(find.byType(WearCompanion))).colorScheme.surface,
+      Colors.black,
+    );
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   }, skip: !isWear);

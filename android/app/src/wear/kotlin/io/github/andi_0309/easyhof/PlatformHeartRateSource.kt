@@ -65,7 +65,7 @@ class PlatformHeartRateSource(
                 resuming = info.exerciseTrackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS
                 owned = resuming
                 after(client.getCapabilitiesAsync()) { capabilities ->
-                    val type = ExerciseType.OTHER_WORKOUT
+                    val type = ExerciseType.WORKOUT
                     if (type !in capabilities.supportedExerciseTypes || DataType.HEART_RATE_BPM !in capabilities.getExerciseTypeCapabilities(type).supportedDataTypes) {
                         status("unavailable"); return@after
                     }
