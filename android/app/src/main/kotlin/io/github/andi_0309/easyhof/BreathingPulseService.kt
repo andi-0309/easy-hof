@@ -44,10 +44,8 @@ class BreathingPulseService : Service() {
         armedAt = SystemClock.elapsedRealtime()
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("breathing-pulse", "Easy Hof · Puls", NotificationManager.IMPORTANCE_LOW))
-        val open = PendingIntent.getActivity(this, 3, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
-        val notification = Notification.Builder(this, "breathing-pulse").setSmallIcon(R.drawable.ic_stat_cold)
-            .setContentTitle(if (JSONObject(SessionStore.setting(this).ifBlank { "{}" }).optString("language") == "de") "Pulsmessung auf der Uhr" else "Watch heart-rate recording")
-            .setContentIntent(open).setOngoing(true).build()
+        val notification = TrainingNotification.build(this, 42, "breathing-pulse",
+            if (JSONObject(SessionStore.setting(this).ifBlank { "{}" }).optString("language") == "de") "Pulsmessung auf der Uhr" else "Watch heart-rate recording")
         if (Build.VERSION.SDK_INT >= 34) startForeground(42, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
         else startForeground(42, notification)
         instance = this

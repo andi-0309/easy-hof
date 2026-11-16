@@ -40,6 +40,8 @@ android {
 kotlin { compilerOptions { jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17 } }
 flutter { source = "../.." }
 dependencies {
+    implementation("androidx.wear:wear-ongoing:1.1.0")
+    implementation("androidx.core:core:1.17.0")
     implementation("com.google.android.gms:play-services-wearable:20.0.1")
     "wearImplementation"("androidx.health:health-services-client:1.1.0")
     "wearImplementation"("com.google.guava:guava:33.4.8-android")

@@ -134,7 +134,8 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   }, skip: !isWear);
   testWidgets('active round watch exposes stop and live pulse', (tester) async {
-    setup(tester, active: true);
+    final calls = <MethodCall>[];
+    setup(tester, active: true, calls: calls);
     await fonts(tester);
     final key = GlobalKey();
     await tester.pumpWidget(RepaintBoundary(key: key, child: const EasyHof()));
@@ -142,9 +143,21 @@ void main() {
     expect(find.text('1:05'), findsOneWidget);
     expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
     expect(find.text('Beenden').hitTestable(), findsNothing);
+    final route = ModalRoute.of(tester.element(find.byType(WearCompanion)))!;
+    expect(route.popDisposition, RoutePopDisposition.doNotPop);
+    await tester.binding.handlePopRoute();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 3));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('1:05'), findsOneWidget);
+    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(calls.any((call) => call.method == 'stopCold'), isFalse);
+    expect(calls.any((call) => call.method == 'keepScreen'), isFalse);
     await screenshot(tester, key, 'wear-water-lock');
     await rotate(tester, 240);
     expect(find.text('Beenden').hitTestable(), findsOneWidget);
+    expect(route.popDisposition, isNot(RoutePopDisposition.doNotPop));
     await screenshot(tester, key, 'wear-active');
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());

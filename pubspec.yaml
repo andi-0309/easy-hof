@@ -1,7 +1,7 @@
 name: easy_hof
 description: Offline breathing and cold training for Android and Wear OS.
 publish_to: none
-version: 1.4.0+10400
+version: 1.4.1+10401
 environment:
   sdk: '>=3.11.0 <4.0.0'
 dependencies:

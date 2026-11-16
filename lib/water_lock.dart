@@ -71,7 +71,10 @@ class _WearWaterLockState extends State<WearWaterLock> {
     locked: locked,
     child: Stack(
       children: [
-        IgnorePointer(ignoring: locked, child: widget.child),
+        IgnorePointer(
+          ignoring: locked,
+          child: PopScope(canPop: !locked, child: widget.child),
+        ),
         if (locked)
           Positioned(
             left: 0,

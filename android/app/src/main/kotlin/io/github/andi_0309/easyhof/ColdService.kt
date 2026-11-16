@@ -75,15 +75,13 @@ class ColdService : Service() {
         return START_NOT_STICKY
     }
     private fun notification(): Notification {
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val stop = PendingIntent.getService(this, 1, Intent(this, ColdService::class.java).setAction("STOP"), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val secs = if (::record.isInitialized) record.optLong("durationMs") / 1000 else 0
-        return Notification.Builder(this, "training").setSmallIcon(R.drawable.ic_stat_cold)
-            .setContentTitle(if (german) "Kältetraining läuft" else "Cold training running")
-            .setContentText("%d:%02d".format(secs / 60, secs % 60)).setContentIntent(open).setOngoing(true)
-            .setCategory(Notification.CATEGORY_SERVICE)
-            .addAction(Notification.Action.Builder(null, if (german) "Beenden" else "Finish", stop).build()).build()
+        return TrainingNotification.build(this, 41, "training",
+            if (german) "Kältetraining läuft" else "Cold training running",
+            "%d:%02d".format(secs / 60, secs % 60), stop, if (german) "Beenden" else "Finish")
     }
+
     private fun checkpoint() { SessionStore.active(this, record) }
     fun snapshot(): JSONObject {
         val result = JSONObject(record.toString()).put("durationMs", SystemClock.elapsedRealtime() - startElapsed)

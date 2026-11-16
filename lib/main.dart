@@ -1141,7 +1141,7 @@ class _EasyHofState extends State<EasyHof> with WidgetsBindingObserver {
           ),
         ),
       ),
-      const Text('Version 1.4.0'),
+      const Text('Version 1.4.1'),
     ]),
   ];
 
